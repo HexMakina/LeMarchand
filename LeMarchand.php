@@ -1,6 +1,6 @@
 <?php 
  
-namespace HexMakina\kadro\Container;
+namespace HexMakina\LeMarchand;
 
 use \Psr\Container\ContainerInterface;
 
