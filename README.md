@@ -1,2 +1,2 @@
 # Container
-Basic container build for kadro
+Basic PSR-11 container build for kadro
