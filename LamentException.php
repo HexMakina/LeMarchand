@@ -1,7 +1,7 @@
 <?php 
-namespace HexMakina\kadro\Container;
+namespace HexMakina\LeMarchand;
 
-use \Psr\Container\{ContainerExceptionInterface};
+use \Psr\Container\ContainerExceptionInterface;
 
 class LamentException extends \Exception implements ContainerExceptionInterface
 {
