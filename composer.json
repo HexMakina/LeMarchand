@@ -1,6 +1,7 @@
 {
     "name": "hexmakina/le-marchand",
     "description": "LeMarchand is a PSR-11 container",
+    "keywords": ["container", "psr-11", "psr11"],
     "type": "package",
     "require": {
         "php": ">=7.4",
