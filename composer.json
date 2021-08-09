@@ -1,6 +1,6 @@
 {
     "name": "hexmakina/le-marchand",
-    "description": "Smith is a wrapper for PHP Session operations",
+    "description": "LeMarchand is a PSR-11 container",
     "type": "package",
     "require": {
         "php": ">=7.4",
