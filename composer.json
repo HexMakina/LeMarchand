@@ -1,0 +1,22 @@
+{
+    "name": "hexmakina/container",
+    "description": "Smith is a wrapper for PHP Session operations",
+    "type": "package",
+    "require": {
+        "php": ">=7.4"
+    },
+    "license": "mit",
+    "authors": [
+        {
+            "name": "HexMakina",
+            "email": "touch@hexmakina.be",
+            "homepage": "https://hexmakina.be"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "HexMakina\\StateAgent\\": "/"
+        }
+    }
+}
