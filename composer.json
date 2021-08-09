@@ -1,5 +1,5 @@
 {
-    "name": "hexmakina/container",
+    "name": "hexmakina/le-marchand",
     "description": "Smith is a wrapper for PHP Session operations",
     "type": "package",
     "require": {
@@ -16,7 +16,7 @@
     "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
-            "HexMakina\\StateAgent\\": "/"
+            "HexMakina\\LeMarchand\\": "/"
         }
     }
 }
