@@ -1,7 +1,7 @@
 <?php 
-namespace HexMakina\kadro\Container;
+namespace HexMakina\LeMarchand;
 
-use \Psr\Container\{NotFoundExceptionInterface};
+use \Psr\Container\NotFoundExceptionInterface;
 
 class ConfigurationException extends \Exception implements NotFoundExceptionInterface
 {
