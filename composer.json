@@ -3,7 +3,8 @@
     "description": "Smith is a wrapper for PHP Session operations",
     "type": "package",
     "require": {
-        "php": ">=7.4"
+        "php": ">=7.4",
+        "psr/container": "^1.0"
     },
     "license": "mit",
     "authors": [
