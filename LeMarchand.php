@@ -83,11 +83,24 @@ class LeMarchand implements ContainerInterface
       // fallbacks
       // 1. configuration data
       // 2. creating instances
-    
-        if (preg_match('/^settings\./', $configuration, $m) === 1) {
-            return $this->get_settings($configuration);
-        } elseif (class_exists($configuration)) { // auto create instances
-            return $this->get_instance($configuration);
+
+        // if (preg_match('/^settings\./', $configuration, $m) === 1) {
+        //     return $this->get_settings($configuration);
+        // } elseif (class_exists($configuration)) { // auto create instances
+        //     return $this->get_instance($configuration);
+        // }
+
+        if(preg_match('/^settings\./', $configuration, $m) === 1)
+        {
+          return $this->get_settings($configuration);
+        }
+        elseif(preg_match('/.+Controller$/', $configuration, $m) === 1)
+        {
+          foreach($this->get_settings('settings.controllers_namespaces') as $controller_namespace)
+          {
+            if(class_exists($controller_namespace.$configuration))
+              return $this->get_instance($controller_namespace.$configuration);
+          }
         }
 
         throw new ConfigurationException($configuration);
