@@ -31,6 +31,37 @@ class LeMarchand implements ContainerInterface
         return isset($this->configurations[$configuration]);
     }
 
+
+    public function get($configuration)
+    {
+        if (!is_string($configuration)) {
+            throw new LamentException($configuration);
+        }
+
+        if ($this->has($configuration)) {
+            return $this->configurations[$configuration];
+        }
+
+      // fallbacks
+      // 1. configuration data
+      // 2. creating instances
+
+        if(preg_match('/^settings\./', $configuration, $m) === 1)
+        {
+          return $this->get_settings($configuration);
+        }
+        elseif(preg_match('/.+Controller$/', $configuration, $m) === 1)
+        {
+          foreach($this->get_settings('settings.controllers_namespaces') as $controller_namespace)
+          {
+            if(class_exists($controller_namespace.$configuration))
+              return $this->get_instance($controller_namespace.$configuration);
+          }
+        }
+
+        throw new ConfigurationException($configuration);
+    }
+
     private function get_instance($class)
     {
         $rc = new \ReflectionClass($class);
@@ -69,40 +100,4 @@ class LeMarchand implements ContainerInterface
         return $ret;
     }
 
-    public function get($configuration)
-    {
-
-        if (!is_string($configuration)) {
-            throw new LamentException($configuration);
-        }
-
-        if ($this->has($configuration)) {
-            return $this->configurations[$configuration];
-        }
-
-      // fallbacks
-      // 1. configuration data
-      // 2. creating instances
-
-        // if (preg_match('/^settings\./', $configuration, $m) === 1) {
-        //     return $this->get_settings($configuration);
-        // } elseif (class_exists($configuration)) { // auto create instances
-        //     return $this->get_instance($configuration);
-        // }
-
-        if(preg_match('/^settings\./', $configuration, $m) === 1)
-        {
-          return $this->get_settings($configuration);
-        }
-        elseif(preg_match('/.+Controller$/', $configuration, $m) === 1)
-        {
-          foreach($this->get_settings('settings.controllers_namespaces') as $controller_namespace)
-          {
-            if(class_exists($controller_namespace.$configuration))
-              return $this->get_instance($controller_namespace.$configuration);
-          }
-        }
-
-        throw new ConfigurationException($configuration);
-    }
 }
