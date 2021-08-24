@@ -35,7 +35,7 @@ class LeMarchand implements ContainerInterface
     public function get($configuration)
     {
         if (!is_string($configuration)) {
-            throw new LamentException($configuration);
+            throw new \InvalidArgumentException($configuration);
         }
 
         if ($this->has($configuration)) {
