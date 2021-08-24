@@ -47,11 +47,11 @@ class LeMarchand implements ContainerInterface
       // 2. creating instances
 
         if (preg_match('/^settings\./', $configuration, $m) === 1) {
-            return $this->get_settings($configuration);
+            return $this->getSettings($configuration);
         } elseif (preg_match('/.+Controller$/', $configuration, $m) === 1) {
-            foreach ($this->get_settings('settings.controllers_namespaces') as $controller_namespace) {
+            foreach ($this->getSettings('settings.controllers_namespaces') as $controller_namespace) {
                 if (class_exists($controller_namespace . $configuration)) {
-                    return $this->get_instance($controller_namespace . $configuration);
+                    return $this->getInstance($controller_namespace . $configuration);
                 }
             }
         }
@@ -59,7 +59,7 @@ class LeMarchand implements ContainerInterface
         throw new ConfigurationException($configuration);
     }
 
-    private function get_instance($class)
+    private function getInstance($class)
     {
         $rc = new \ReflectionClass($class);
 
@@ -82,7 +82,7 @@ class LeMarchand implements ContainerInterface
     }
 
 
-    private function get_settings($setting)
+    private function getSettings($setting)
     {
         $ret = $this->configurations;
 
