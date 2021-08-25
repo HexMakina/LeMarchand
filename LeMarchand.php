@@ -16,8 +16,10 @@ class LeMarchand implements ContainerInterface
     public function __debugInfo(): array
     {
         $dbg = get_object_vars($this);
-        $dbg['configurations']['template_engine'] = isset($dbg['configurations']['template_engine']) ? get_class($dbg['configurations']['template_engine']) : 'NOT SET';
-
+        if (isset($dbg['configurations']['template_engine'])) {
+          // way too long of an object
+            $dbg['configurations']['template_engine'] = get_class($dbg['configurations']['template_engine']);
+        }
         return $dbg;
     }
 
@@ -57,39 +59,37 @@ class LeMarchand implements ContainerInterface
 
     private function cascadeControllers($controller_name)
     {
-      foreach ($this->getSettings('settings.controllers_namespaces') as $cns) {
-          if (!is_null($instance = $this->getInstance($cns . $controller_name))) {
-              return $instance;
-          }
-      }
-      throw new ConfigurationException($controller_name);
+        foreach ($this->getSettings('settings.controllers_namespaces') as $cns) {
+            if (!is_null($instance = $this->getInstance($cns . $controller_name))) {
+                return $instance;
+            }
+        }
+        throw new ConfigurationException($controller_name);
     }
 
     private function getInstance($class)
     {
-      try{
-        $rc = new \ReflectionClass($class);
-        $instance=null;
-        $construction_args = [];
-        if (!is_null($rc->getConstructor())) {
-            foreach ($rc->getConstructor()->getParameters() as $param) {
-                $construction_args [] = $this->get($param->getType() . '');
+        try {
+            $rc = new \ReflectionClass($class);
+            $instance = null;
+            $construction_args = [];
+            if (!is_null($rc->getConstructor())) {
+                foreach ($rc->getConstructor()->getParameters() as $param) {
+                    $construction_args [] = $this->get($param->getType() . '');
+                }
+                $instance = $rc->newInstanceArgs($construction_args);
+            } else {
+                $instance = $rc->newInstanceArgs();
             }
-            $instance = $rc->newInstanceArgs($construction_args);
-        } else {
-            $instance = $rc->newInstanceArgs();
-        }
 
-        if ($rc->hasMethod('set_container')) {
-            $instance->set_container($this);
-        }
+            if ($rc->hasMethod('set_container')) {
+                $instance->set_container($this);
+            }
 
-        return $instance;
-      }
-      catch(\ReflectionException $e)
-      {
-        return null;
-      }
+            return $instance;
+        } catch (\ReflectionException $e) {
+            return null;
+        }
     }
 
 
