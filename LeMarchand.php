@@ -49,14 +49,20 @@ class LeMarchand implements ContainerInterface
         }
         // 2. creating instances
         if (preg_match('/.+Controller$/', $configuration, $m) === 1) {
-            foreach ($this->getSettings('settings.controllers_namespaces') as $controller_namespace) {
-                if (!is_null($instance = $this->getInstance($controller_namespace . $configuration))) {
-                    return $instance;
-                }
-            }
+            return $this->cascadeControllers($controller_name);
         }
 
         throw new ConfigurationException($configuration);
+    }
+
+    private function cascadeControllers($controller_name)
+    {
+      foreach ($this->getSettings('settings.controllers_namespaces') as $cns) {
+          if (!is_null($instance = $this->getInstance($cns . $controller_name))) {
+              return $instance;
+          }
+      }
+      throw new ConfigurationException($controller_name);
     }
 
     private function getInstance($class)
