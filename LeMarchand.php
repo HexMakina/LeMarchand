@@ -49,7 +49,7 @@ class LeMarchand implements ContainerInterface
         }
         // 2. creating instances
         if (preg_match('/.+Controller$/', $configuration, $m) === 1) {
-            return $this->cascadeControllers($controller_name);
+            return $this->cascadeControllers($configuration);
         }
 
         throw new ConfigurationException($configuration);
