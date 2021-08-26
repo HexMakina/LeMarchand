@@ -10,3 +10,7 @@ Basic PSR-11 container build for kadro
 
 # Install
 composer require hexmakina/le-marchand
+
+# Usage
+
+'$box=new LeMarchand($settings);'
