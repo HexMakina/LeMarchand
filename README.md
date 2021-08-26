@@ -6,10 +6,12 @@
 [![License](http://poser.pugx.org/hexmakina/le-marchand/license)](https://packagist.org/packages/hexmakina/le-marchand)
 
 # LeMarchand
-Basic PSR-11 container build for kadro
+Basic PSR-11 container build for kadro framework, for now being a Service Locator, not a Dependency Injection
+
 
 # Install
 composer require hexmakina/le-marchand
+
 
 # Usage
 
@@ -49,10 +51,10 @@ $box->register('HexMakina\Crudites\DatabaseInterface', $database);
 ```
 
 ## Do we have a configuration ?
-
+## Can we get it ?
 By PSR-11 law:
-* A call to the has method with a non-existing id returns false
-* A call to the get method with a non-existing id throws a Psr\Container\NotFoundExceptionInterface.
+* A call to the *has* method with a non-existing id returns false
+* A call to the *get* method with a non-existing id throws a Psr\Container\NotFoundExceptionInterface.
 ```
 $box->has('NonExistingKey'); //return false
 $box->get('NonExistingKey'); //throws a Psr\Container\NotFoundExceptionInterface
@@ -65,6 +67,6 @@ $box->get(23); // throws a Psr\Container\ContainerExceptionInterface
 ```
 
 
-## Lore & Hommage
+# Lore & Hommage
 
 The **LeMarchand** box that has become known in the Hellraiser film series as the **Lament Configuration** was introduced in The Hellbound Heart novella as "the Lemarchand Configuration".
