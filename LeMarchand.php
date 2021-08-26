@@ -37,7 +37,7 @@ class LeMarchand implements ContainerInterface
     public function get($configuration)
     {
         if (!is_string($configuration)) {
-            throw new \InvalidArgumentException($configuration);
+            throw new LamentException($configuration);
         }
 
         if ($this->has($configuration)) {
@@ -49,17 +49,27 @@ class LeMarchand implements ContainerInterface
         if (preg_match('/^settings\./', $configuration, $m) === 1) {
             return $this->getSettings($configuration);
         }
-        // 2. creating instances
+        // 2. creating controller instances
         if (preg_match('/.+Controller$/', $configuration, $m) === 1) {
             return $this->cascadeControllers($configuration);
         }
+
+        // // 3. creating instances based on interfaces
+        // if (preg_match('/.+Interface$/', $configuration, $m) === 1) {
+        //     return $this->instantiate($configuration);
+        // }
 
         throw new ConfigurationException($configuration);
     }
 
     private function cascadeControllers($controller_name)
     {
-        foreach ($this->getSettings('settings.controllers_namespaces') as $cns) {
+        // is the controller name already fully qualified ?
+        if (!is_null($instance = $this->getInstance($controller_name))) {
+            return $instance;
+        }
+        // not fully qualifed, lets cascade
+        foreach ($this->getSettings('settings.controller_namespaces') as $cns) {
             if (!is_null($instance = $this->getInstance($cns . $controller_name))) {
                 return $instance;
             }
