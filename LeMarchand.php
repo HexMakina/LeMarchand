@@ -2,7 +2,7 @@
 
 namespace HexMakina\LeMarchand;
 
-use Psr\Container\ContainerInterface;
+use Psr\Container\{ContainerInterface, ContainerExceptionInterface, NotFoundExceptionInterface};
 
 class LeMarchand implements ContainerInterface
 {
@@ -30,7 +30,16 @@ class LeMarchand implements ContainerInterface
 
     public function has($configuration)
     {
-        return isset($this->configurations[$configuration]);
+      try{
+        $this->get($configuration);
+        return true;
+      }
+      catch(NotFoundExceptionInterface $e){
+        return false;
+      }
+      catch(ContainerExceptionInterface $e){
+        return false;
+      }
     }
 
 
@@ -39,25 +48,19 @@ class LeMarchand implements ContainerInterface
         if (!is_string($configuration)) {
             throw new LamentException($configuration);
         }
-
-        if ($this->has($configuration)) {
+        // 1. is it a first level key ?
+        if (isset($this->configurations[$configuration])) {
             return $this->configurations[$configuration];
         }
 
-        // fallbacks
-        // 1. configuration data
+        // 2. is it configuration data ?
         if (preg_match('/^settings\./', $configuration, $m) === 1) {
             return $this->getSettings($configuration);
         }
-        // 2. creating controller instances
+        // 3. is it a controller ?
         if (preg_match('/.+Controller$/', $configuration, $m) === 1) {
             return $this->cascadeControllers($configuration);
         }
-
-        // // 3. creating instances based on interfaces
-        // if (preg_match('/.+Interface$/', $configuration, $m) === 1) {
-        //     return $this->instantiate($configuration);
-        // }
 
         throw new ConfigurationException($configuration);
     }
