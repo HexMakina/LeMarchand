@@ -16,15 +16,16 @@ class LeMarchand implements ContainerInterface
     public const RX_CLASS_NAME = '/([a-zA-Z]+)(Class|Model|Controller)$/';
 
 
-    public static function box($settings=null) : ContainerInterface
+    public static function box($settings = null): ContainerInterface
     {
-      if(is_null(self::$instance)){
-        if(is_array($settings))
-          return (self::$instance = new LeMarchand($settings));
-        throw new LamentException('UNABLE_TO_OPEN_BOX');
-      }
+        if (is_null(self::$instance)) {
+            if (is_array($settings)) {
+                return (self::$instance = new LeMarchand($settings));
+            }
+            throw new LamentException('UNABLE_TO_OPEN_BOX');
+        }
 
-      return self::$instance;
+        return self::$instance;
     }
 
 
@@ -50,16 +51,14 @@ class LeMarchand implements ContainerInterface
 
     public function has($configuration)
     {
-      try{
-        $this->get($configuration);
-        return true;
-      }
-      catch(NotFoundExceptionInterface $e){
-        return false;
-      }
-      catch(ContainerExceptionInterface $e){
-        return false;
-      }
+        try {
+            $this->get($configuration);
+            return true;
+        } catch (NotFoundExceptionInterface $e) {
+            return false;
+        } catch (ContainerExceptionInterface $e) {
+            return false;
+        }
     }
 
 
@@ -80,16 +79,18 @@ class LeMarchand implements ContainerInterface
         // 3. is it a class
         if (preg_match(self::RX_CLASS_NAME, $configuration, $m) === 1) {
             $class_name = $this->cascadeNamespace($m[1], $m[2]);
-            if($m[2] === 'Class')
-              return $class_name;
+            if ($m[2] === 'Class') {
+                return $class_name;
+            }
 
             return $this->getInstance($class_name);
         }
 
         if (preg_match(self::RX_INTERFACE_NAME, $configuration, $m) === 1) {
             $wire = $this->get('settings.interface_implementations');
-            if(isset($wire[$configuration]))
-              return $this->getInstance($wire[$configuration]);
+            if (isset($wire[$configuration])) {
+                return $this->getInstance($wire[$configuration]);
+            }
         }
 
         throw new ConfigurationException($configuration);
@@ -110,22 +111,26 @@ class LeMarchand implements ContainerInterface
     //     throw new ConfigurationException($controller_name);
     // }
 
-    private function cascadeNamespace($class_name, $mvc_type=null)
+    private function cascadeNamespace($class_name, $mvc_type = null)
     {
         // does the name already exists ?
-        if(class_exists($class_name))
-          return $class_name;
+        if (class_exists($class_name)) {
+            return $class_name;
+        }
 
-        if($mvc_type === 'Class')
-          $mvc_type = 'Model';
+        if ($mvc_type === 'Class') {
+            $mvc_type = 'Model';
+        }
 
-        if($mvc_type === 'Controller')
-          $class_name = $class_name.'Controller';
+        if ($mvc_type === 'Controller') {
+            $class_name = $class_name . 'Controller';
+        }
 
         // not fully namespaced, lets cascade
         foreach ($this->getSettings('settings.namespaces') as $ns) {
-            if(class_exists($full_name = $ns . $mvc_type . 's\\' . $class_name))
-              return $full_name;
+            if (class_exists($full_name = $ns . $mvc_type . 's\\' . $class_name)) {
+                return $full_name;
+            }
         }
 
         throw new ConfigurationException($class_name);
