@@ -44,7 +44,7 @@ class LeMarchand implements ContainerInterface
         return $dbg;
     }
 
-    public function register($configuration, $instance)
+    public function put($configuration, $instance)
     {
         $this->configurations[$configuration] = $instance;
     }
