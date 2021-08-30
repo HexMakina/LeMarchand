@@ -109,7 +109,7 @@ class LeMarchand implements ContainerInterface
         }
 
         if ($type === 'Interface') {
-            return $this->wireInstance();
+            return $this->wireInstance($name);
         }
 
         return $this->getInstance($class_name);
