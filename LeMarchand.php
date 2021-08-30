@@ -78,32 +78,41 @@ class LeMarchand implements ContainerInterface
         }
         // 3. is it a class
         if (preg_match(self::RX_CLASS_NAME, $configuration, $m) === 1) {
-
-            $class_name = $this->cascadeNamespace($m[1], $m[2]);
-
-            if ($m[2] === 'Class') {
-                return $class_name;
-            }
-
-            if($m[2] === 'Interface'){
-                return $this->wireInstance();
-            }
-
-            return $this->getInstance($class_name);
+            return $this->classification($m[1], $m[2]);
         }
 
         throw new ConfigurationException($configuration);
     }
 
-    private function wireIntance($interface)
-    {
-      $wire = $this->getSettings('settings.interface_implementations');
 
-      if (!isset($wire[$interface])) {
-        throw new ConfigurationException($interface);
+    private function getSettings($setting)
+    {
+        $ret = $this->configurations;
+
+      //dot based hierarchy, parse and climb
+        foreach (explode('.', $setting) as $k) {
+            if (!isset($ret[$k])) {
+                throw new ConfigurationException($setting);
+            }
+            $ret = $ret[$k];
+        }
+
+        return $ret;
+    }
+    
+    private classification($name, $type)
+    {
+      $class_name = $this->cascadeNamespace($name, $type);
+
+      if ($type === 'Class') {
+          return $class_name;
       }
 
-      return $this->getInstance($wire[$interface]);
+      if($type === 'Interface'){
+          return $this->wireInstance();
+      }
+
+      return $this->getInstance($class_name);
     }
 
     private function cascadeNamespace($class_name, $mvc_type = null)
@@ -129,6 +138,17 @@ class LeMarchand implements ContainerInterface
         }
 
         throw new ConfigurationException($class_name);
+    }
+
+    private function wireIntance($interface)
+    {
+      $wire = $this->getSettings('settings.interface_implementations');
+
+      if (!isset($wire[$interface])) {
+        throw new ConfigurationException($interface);
+      }
+
+      return $this->getInstance($wire[$interface]);
     }
 
     private function getInstance($class)
@@ -157,18 +177,4 @@ class LeMarchand implements ContainerInterface
     }
 
 
-    private function getSettings($setting)
-    {
-        $ret = $this->configurations;
-
-      //dot based hierarchy, parse and climb
-        foreach (explode('.', $setting) as $k) {
-            if (!isset($ret[$k])) {
-                throw new ConfigurationException($setting);
-            }
-            $ret = $ret[$k];
-        }
-
-        return $ret;
-    }
 }
