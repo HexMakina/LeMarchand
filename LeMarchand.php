@@ -102,17 +102,17 @@ class LeMarchand implements ContainerInterface
 
     private function classification($name, $type)
     {
-      $class_name = $this->cascadeNamespace($name, $type);
+        $class_name = $this->cascadeNamespace($name, $type);
 
-      if ($type === 'Class') {
-          return $class_name;
-      }
+        if ($type === 'Class') {
+            return $class_name;
+        }
 
-      if($type === 'Interface'){
-          return $this->wireInstance();
-      }
+        if ($type === 'Interface') {
+            return $this->wireInstance();
+        }
 
-      return $this->getInstance($class_name);
+        return $this->getInstance($class_name);
     }
 
     private function cascadeNamespace($class_name, $mvc_type = null)
@@ -140,15 +140,15 @@ class LeMarchand implements ContainerInterface
         throw new ConfigurationException($class_name);
     }
 
-    private function wireIntance($interface)
+    private function wireInstance($interface)
     {
-      $wire = $this->getSettings('settings.interface_implementations');
+        $wire = $this->getSettings('settings.interface_implementations');
 
-      if (!isset($wire[$interface])) {
-        throw new ConfigurationException($interface);
-      }
+        if (!isset($wire[$interface])) {
+            throw new ConfigurationException($interface);
+        }
 
-      return $this->getInstance($wire[$interface]);
+        return $this->getInstance($wire[$interface]);
     }
 
     private function getInstance($class)
@@ -175,6 +175,4 @@ class LeMarchand implements ContainerInterface
             return null;
         }
     }
-
-
 }
