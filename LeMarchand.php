@@ -99,8 +99,8 @@ class LeMarchand implements ContainerInterface
 
         return $ret;
     }
-    
-    private classification($name, $type)
+
+    private function classification($name, $type)
     {
       $class_name = $this->cascadeNamespace($name, $type);
 
