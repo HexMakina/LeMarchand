@@ -9,6 +9,10 @@ class LeMarchand implements ContainerInterface
     private static $instance = null;
     private $configurations = [];
 
+    public const RX_CONTROLLER_NAME = '/([a-zA-Z]+)Controller$/';
+    public const RX_INTERFACE_NAME = '/([a-zA-Z]+)Interface$/';
+    public const RX_SETTINGS = '/^settings\./';
+    public const RX_MODEL_CLASS = '/([a-zA-Z]+)(Class|Model)$/';
 
     public static function box($settings=null) : ContainerInterface
     {
@@ -68,17 +72,17 @@ class LeMarchand implements ContainerInterface
         }
 
         // 2. is it configuration data ?
-        if (preg_match('/^settings\./', $configuration, $m) === 1) {
+        if (preg_match(self::RX_SETTINGS, $configuration, $m) === 1) {
             return $this->getSettings($configuration);
         }
         // 3. is it a controller ?
-        if (preg_match('/.+Controller$/', $configuration, $m) === 1) {
+        if (preg_match(self::RX_CONTROLLER_NAME, $configuration, $m) === 1) {
             $class_name = $this->cascadeNamespace($configuration, 'Controllers');
             return $this->getInstance($class_name);
             // return $this->cascadeControllers($configuration);
         }
         // 4. is it a class ?
-        if (preg_match('/(.+)(Class|Model)$/', $configuration, $m) === 1) {
+        if (preg_match(self::RX_MODEL_CLASS, $configuration, $m) === 1) {
             $class_name = $this->cascadeNamespace($m[1], 'Models');
             if($m[2] === 'Model')
               return $this->getInstance($class_name);
@@ -86,7 +90,7 @@ class LeMarchand implements ContainerInterface
               return $class_name;
         }
 
-        if (preg_match('/.+Interface$/', $configuration, $m) === 1) {
+        if (preg_match(self::RX_INTERFACE_NAME, $configuration, $m) === 1) {
             $wire = $this->get('settings.interface_implementations');
             if(isset($wire[$configuration]))
               return $this->getInstance($wire[$configuration]);
