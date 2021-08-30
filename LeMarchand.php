@@ -61,17 +61,21 @@ class LeMarchand implements ContainerInterface
         if (preg_match('/.+Controller$/', $configuration, $m) === 1) {
             return $this->cascadeControllers($configuration);
         }
+        if (preg_match('/.+Interface$/', $configuration, $m) === 1) {
+            $wire = $this->get('settings.interface_implementations');
+            return $this->getInstance($wire[$configuration]);
+        }
 
         throw new ConfigurationException($configuration);
     }
 
     private function cascadeControllers($controller_name)
     {
-        // is the controller name already fully qualified ?
+        // is the controller name already instantiable ?
         if (!is_null($instance = $this->getInstance($controller_name))) {
             return $instance;
         }
-        // not fully qualifed, lets cascade
+        // not fully namespaced, lets cascade
         foreach ($this->getSettings('settings.controller_namespaces') as $cns) {
             if (!is_null($instance = $this->getInstance($cns . $controller_name))) {
                 return $instance;
