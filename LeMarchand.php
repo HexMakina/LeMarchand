@@ -59,8 +59,19 @@ class LeMarchand implements ContainerInterface
         }
         // 3. is it a controller ?
         if (preg_match('/.+Controller$/', $configuration, $m) === 1) {
-            return $this->cascadeControllers($configuration);
+            $class_name = $this->cascadeNamespace($configuration, 'Controllers');
+            return $this->getInstance($class_name);
+            // return $this->cascadeControllers($configuration);
         }
+        // 4. is it a class ?
+        if (preg_match('/(.+)(Class|Model)$/', $configuration, $m) === 1) {
+            $class_name = $this->cascadeNamespace($m[1], 'Models');
+            if($m[2] === 'Model')
+              return $this->getInstance($class_name);
+            else
+              return $class_name;
+        }
+
         if (preg_match('/.+Interface$/', $configuration, $m) === 1) {
             $wire = $this->get('settings.interface_implementations');
             if(isset($wire[$configuration]))
@@ -70,19 +81,37 @@ class LeMarchand implements ContainerInterface
         throw new ConfigurationException($configuration);
     }
 
-    private function cascadeControllers($controller_name)
+    // private function cascadeControllers($controller_name)
+    // {
+    //     // is the controller name already instantiable ?
+    //     if (!is_null($instance = $this->getInstance($controller_name))) {
+    //         return $instance;
+    //     }
+    //     // not fully namespaced, lets cascade
+    //     foreach ($this->getSettings('settings.controller_namespaces') as $cns) {
+    //         if (!is_null($instance = $this->getInstance($cns . $controller_name))) {
+    //             return $instance;
+    //         }
+    //     }
+    //     throw new ConfigurationException($controller_name);
+    // }
+
+    private function cascadeNamespace($class_name, $mvc_type=null)
     {
         // is the controller name already instantiable ?
-        if (!is_null($instance = $this->getInstance($controller_name))) {
-            return $instance;
+        if(is_null($mvc_type) && class_exists($class_name))
+          return $class_name;
+
+        if($mvc_type !== 'Models' && $mvc_type !== 'Controllers'){
+            throw new LamentException('MVC_TYPE ('.$mvc_type.') UNKOWN');
         }
+
         // not fully namespaced, lets cascade
-        foreach ($this->getSettings('settings.controller_namespaces') as $cns) {
-            if (!is_null($instance = $this->getInstance($cns . $controller_name))) {
-                return $instance;
-            }
+        foreach ($this->getSettings('settings.namespaces') as $ns) {
+            if(class_exists($full_name = $ns . $mvc_type . '\\' . $class_name))
+              return $full_name;
         }
-        throw new ConfigurationException($controller_name);
+        throw new ConfigurationException($class_name);
     }
 
     private function getInstance($class)
