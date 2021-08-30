@@ -63,7 +63,8 @@ class LeMarchand implements ContainerInterface
         }
         if (preg_match('/.+Interface$/', $configuration, $m) === 1) {
             $wire = $this->get('settings.interface_implementations');
-            return $this->getInstance($wire[$configuration]);
+            if(isset($wire[$configuration]))
+              return $this->getInstance($wire[$configuration]);
         }
 
         throw new ConfigurationException($configuration);
