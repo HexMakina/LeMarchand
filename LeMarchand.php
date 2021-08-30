@@ -6,9 +6,23 @@ use Psr\Container\{ContainerInterface, ContainerExceptionInterface, NotFoundExce
 
 class LeMarchand implements ContainerInterface
 {
+    private static $instance = null;
     private $configurations = [];
 
-    public function __construct($settings)
+
+    public static function box($settings=null) : ContainerInterface
+    {
+      if(is_null(self::$instance)){
+        if(is_array($settings))
+          return (self::$instance = new LeMarchand($settings));
+        throw new LamentException('MVC_TYPE ('.$mvc_type.') UNKOWN');
+      }
+
+      return self::$instance;
+    }
+
+
+    private function __construct($settings)
     {
         $this->configurations['settings'] = $settings;
     }
