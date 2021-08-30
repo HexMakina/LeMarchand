@@ -11,9 +11,9 @@ class LeMarchand implements ContainerInterface
 
     // public const RX_CONTROLLER_NAME = '/([a-zA-Z]+)Controller$/';
     // public const RX_MODEL_CLASS = '/([a-zA-Z]+)(Class|Model)$/';
-    public const RX_SETTINGS = '/^settings\./';
+    const RX_SETTINGS = '/^settings\./';
     // public const RX_INTERFACE_NAME = '/([a-zA-Z]+)Interface$/';
-    public const RX_CLASS_NAME = '/([a-zA-Z]+)(Class|Model|Controller|Interface)$/';
+    const RX_CLASS_NAME = '/([a-zA-Z]+)(Class|Model|Controller|Interface)$/';
 
 
     public static function box($settings = null): ContainerInterface
