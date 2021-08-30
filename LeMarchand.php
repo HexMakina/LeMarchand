@@ -86,40 +86,25 @@ class LeMarchand implements ContainerInterface
             }
 
             if($m[2] === 'Interface'){
-              $wire = $this->getSettings('settings.interface_implementations');
-              if (!isset($wire[$configuration])) {
-                throw new ConfigurationException($configuration);
-              }
-              $class_name = $wire[$configuration];
+                return $this->wireInstance();
             }
 
             return $this->getInstance($class_name);
         }
 
-        // if (preg_match(self::RX_INTERFACE_NAME, $configuration, $m) === 1) {
-        //     $wire = $this->get('settings.interface_implementations');
-        //     if (isset($wire[$configuration])) {
-        //         return $this->getInstance($wire[$configuration]);
-        //     }
-        // }
-
         throw new ConfigurationException($configuration);
     }
 
-    // private function cascadeControllers($controller_name)
-    // {
-    //     // is the controller name already instantiable ?
-    //     if (!is_null($instance = $this->getInstance($controller_name))) {
-    //         return $instance;
-    //     }
-    //     // not fully namespaced, lets cascade
-    //     foreach ($this->getSettings('settings.controller_namespaces') as $cns) {
-    //         if (!is_null($instance = $this->getInstance($cns . $controller_name))) {
-    //             return $instance;
-    //         }
-    //     }
-    //     throw new ConfigurationException($controller_name);
-    // }
+    private function wireIntance($interface)
+    {
+      $wire = $this->getSettings('settings.interface_implementations');
+
+      if (!isset($wire[$interface])) {
+        throw new ConfigurationException($interface);
+      }
+
+      return $this->getInstance($wire[$interface]);
+    }
 
     private function cascadeNamespace($class_name, $mvc_type = null)
     {
