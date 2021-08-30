@@ -112,16 +112,13 @@ class LeMarchand implements ContainerInterface
 
     private function cascadeNamespace($class_name, $mvc_type=null)
     {
-        // is the controller name already instantiable ?
-        if(is_null($mvc_type) && class_exists($class_name))
+        // does the name already exists ?
+        if(class_exists($class_name))
           return $class_name;
 
         if($mvc_type === 'Class')
           $mvc_type = 'Model';
 
-        if($mvc_type !== 'Model' && $mvc_type !== 'Controller'){
-            throw new LamentException('MVC_TYPE ('.$mvc_type.') UNKOWN');
-        }
         if($mvc_type === 'Controller')
           $class_name = $class_name.'Controller';
 
