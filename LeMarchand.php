@@ -12,8 +12,8 @@ class LeMarchand implements ContainerInterface
     // public const RX_CONTROLLER_NAME = '/([a-zA-Z]+)Controller$/';
     // public const RX_MODEL_CLASS = '/([a-zA-Z]+)(Class|Model)$/';
     public const RX_SETTINGS = '/^settings\./';
-    public const RX_INTERFACE_NAME = '/([a-zA-Z]+)Interface$/';
-    public const RX_CLASS_NAME = '/([a-zA-Z]+)(Class|Model|Controller)$/';
+    // public const RX_INTERFACE_NAME = '/([a-zA-Z]+)Interface$/';
+    public const RX_CLASS_NAME = '/([a-zA-Z]+)(Class|Model|Controller|Interface)$/';
 
 
     public static function box($settings = null): ContainerInterface
@@ -78,20 +78,30 @@ class LeMarchand implements ContainerInterface
         }
         // 3. is it a class
         if (preg_match(self::RX_CLASS_NAME, $configuration, $m) === 1) {
+
             $class_name = $this->cascadeNamespace($m[1], $m[2]);
+
             if ($m[2] === 'Class') {
                 return $class_name;
+            }
+
+            if($m[2] === 'Interface'){
+              $wire = $this->getSettings('settings.interface_implementations');
+              if (!isset($wire[$configuration])) {
+                throw new ConfigurationException($configuration);
+              }
+              $class_name = $wire[$configuration];
             }
 
             return $this->getInstance($class_name);
         }
 
-        if (preg_match(self::RX_INTERFACE_NAME, $configuration, $m) === 1) {
-            $wire = $this->get('settings.interface_implementations');
-            if (isset($wire[$configuration])) {
-                return $this->getInstance($wire[$configuration]);
-            }
-        }
+        // if (preg_match(self::RX_INTERFACE_NAME, $configuration, $m) === 1) {
+        //     $wire = $this->get('settings.interface_implementations');
+        //     if (isset($wire[$configuration])) {
+        //         return $this->getInstance($wire[$configuration]);
+        //     }
+        // }
 
         throw new ConfigurationException($configuration);
     }
