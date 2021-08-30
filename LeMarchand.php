@@ -21,7 +21,7 @@ class LeMarchand implements ContainerInterface
       if(is_null(self::$instance)){
         if(is_array($settings))
           return (self::$instance = new LeMarchand($settings));
-        throw new LamentException('MVC_TYPE ('.$mvc_type.') UNKOWN');
+        throw new LamentException('UNABLE_TO_OPEN_BOX');
       }
 
       return self::$instance;
