@@ -46,6 +46,9 @@ class LeMarchand implements ContainerInterface
 
     public function put($configuration, $instance)
     {
+        if (!is_string($configuration)) {
+            throw new LamentException($configuration);
+        }
         $this->configurations[$configuration] = $instance;
     }
 
