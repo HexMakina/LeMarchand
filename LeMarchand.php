@@ -67,6 +67,7 @@ class LeMarchand implements ContainerInterface
 
     public function get($configuration)
     {
+
         if (!is_string($configuration)) {
             throw new LamentException($configuration);
         }
@@ -105,14 +106,14 @@ class LeMarchand implements ContainerInterface
 
     private function classification($name, $type)
     {
+        if ($type === 'Interface') {
+          return $this->wireInstance($name.$type);
+        }
+
         $class_name = $this->cascadeNamespace($name, $type);
 
         if ($type === 'Class') {
             return $class_name;
-        }
-
-        if ($type === 'Interface') {
-            return $this->wireInstance($name);
         }
 
         return $this->getInstance($class_name);
