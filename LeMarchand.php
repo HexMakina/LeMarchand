@@ -7,7 +7,14 @@ use Psr\Container\{ContainerInterface, ContainerExceptionInterface, NotFoundExce
 class LeMarchand implements ContainerInterface
 {
     private static $instance = null;
+    // stores all the settings
     private $configurations = [];
+
+    // stores the namespace cascade
+    private $namespace_cascade = [];
+
+    // stores the interface to class wiring
+    private $interface_wiring = [];
 
     // public const RX_CONTROLLER_NAME = '/([a-zA-Z]+)Controller$/';
     // public const RX_MODEL_CLASS = '/([a-zA-Z]+)(Class|Model)$/';
@@ -32,6 +39,9 @@ class LeMarchand implements ContainerInterface
     private function __construct($settings)
     {
         $this->configurations['settings'] = $settings;
+        
+        $this->namespace_cascade = $settings['LeMarchand']['cascade'];
+        $this->interface_wiring = $settings['LeMarchand']['wiring'];
     }
 
     public function __debugInfo(): array
@@ -91,6 +101,7 @@ class LeMarchand implements ContainerInterface
 
     private function getSettings($setting)
     {
+      // vdt(__FUNCTION__);
         $ret = $this->configurations;
 
       //dot based hierarchy, parse and climb
@@ -135,7 +146,7 @@ class LeMarchand implements ContainerInterface
         }
 
         // not fully namespaced, lets cascade
-        foreach ($this->getSettings('settings.namespaces') as $ns) {
+        foreach ($this->namespace_cascade as $ns) {
             if (class_exists($full_name = $ns . $mvc_type . 's\\' . $class_name)) {
                 return $full_name;
             }
