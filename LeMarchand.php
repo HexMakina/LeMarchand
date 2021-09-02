@@ -39,9 +39,11 @@ class LeMarchand implements ContainerInterface
     private function __construct($settings)
     {
         $this->configurations['settings'] = $settings;
-        
-        $this->namespace_cascade = $settings['LeMarchand']['cascade'];
-        $this->interface_wiring = $settings['LeMarchand']['wiring'];
+        if(isset($settings['LeMarchand']))
+        {
+          $this->namespace_cascade = $settings['LeMarchand']['cascade'] ?? [];
+          $this->interface_wiring = $settings['LeMarchand']['wiring'] ?? [];
+        }
     }
 
     public function __debugInfo(): array
@@ -157,13 +159,11 @@ class LeMarchand implements ContainerInterface
 
     private function wireInstance($interface)
     {
-        $wire = $this->getSettings('settings.interface_implementations');
-
-        if (!isset($wire[$interface])) {
+        if (!isset($this->interface_wiring[$interface])) {
             throw new ConfigurationException($interface);
         }
 
-        return $this->getInstance($wire[$interface]);
+        return $this->getInstance($this->interface_wiring[$interface]);
     }
 
     private function getInstance($class)
@@ -174,6 +174,7 @@ class LeMarchand implements ContainerInterface
             $construction_args = [];
             if (!is_null($rc->getConstructor())) {
                 foreach ($rc->getConstructor()->getParameters() as $param) {
+
                     $construction_args [] = $this->get($param->getType() . '');
                 }
                 $instance = $rc->newInstanceArgs($construction_args);
