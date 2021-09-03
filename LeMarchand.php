@@ -162,22 +162,36 @@ class LeMarchand implements ContainerInterface
         if (!isset($this->interface_wiring[$interface])) {
             throw new ConfigurationException($interface);
         }
-
+        $wire = $this->interface_wiring[$interface];
+        if(is_array($wire)){
+          $class = array_shift($wire);
+          return $this->getInstance($class, $wire);
+        }
         return $this->getInstance($this->interface_wiring[$interface]);
     }
 
-    private function getInstance($class)
+    private function getInstance($class, $construction_args = [])
     {
         try {
             $rc = new \ReflectionClass($class);
             $instance = null;
-            $construction_args = [];
-            if (!is_null($rc->getConstructor())) {
-                foreach ($rc->getConstructor()->getParameters() as $param) {
 
-                    $construction_args [] = $this->get($param->getType() . '');
+            if (!is_null($rc->getConstructor())) {
+              if(empty($construction_args)){
+                foreach ($rc->getConstructor()->getParameters() as $param) {
+                  try{
+                    if($param->getType())
+                      $construction_args [] = $this->get($param->getType()->getName());
+                    else{
+                      $setting = 'settings.Constructor.'.$class.'.'.$param->getName();
+                      $construction_args []= $this->getSettings($setting);
+                    }
+                  }catch(NotFoundExceptionInterface $e){
+                    dd($e);
+                  }
                 }
-                $instance = $rc->newInstanceArgs($construction_args);
+              }
+              $instance = $rc->newInstanceArgs($construction_args);
             } else {
                 $instance = $rc->newInstanceArgs();
             }
