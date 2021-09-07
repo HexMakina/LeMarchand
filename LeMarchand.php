@@ -255,16 +255,16 @@ class LeMarchand implements ContainerInterface
 
         if (empty($construction_args)) {
             foreach ($constructor->getParameters() as $param) {
-                try {
+                // try {
                     if ($param->getType()) {
                         $construction_args [] = $this->get($param->getType()->getName());
                     } else {
                         $setting = 'settings.Constructor.' . $constructor->class . '.' . $param->getName();
                         $construction_args [] = $this->getSettings($setting);
                     }
-                } catch (NotFoundExceptionInterface $e) {
-                    dd($e);
-                }
+                // } catch (NotFoundExceptionInterface $e) {
+                //     dd($e);
+                // }
             }
         }
         return $construction_args;
