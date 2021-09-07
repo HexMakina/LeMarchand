@@ -43,10 +43,9 @@ class LeMarchand implements ContainerInterface
     private function __construct($settings)
     {
         $this->configurations['settings'] = $settings;
-        if(isset($settings['LeMarchand']))
-        {
-          $this->namespace_cascade = $settings['LeMarchand']['cascade'] ?? [];
-          $this->interface_wiring = $settings['LeMarchand']['wiring'] ?? [];
+        if (isset($settings['LeMarchand'])) {
+            $this->namespace_cascade = $settings['LeMarchand']['cascade'] ?? [];
+            $this->interface_wiring = $settings['LeMarchand']['wiring'] ?? [];
         }
     }
 
@@ -97,8 +96,9 @@ class LeMarchand implements ContainerInterface
         }
 
         // 3. is it an existing class
-        if(class_exists($configuration))
-          return $this->getInstance($configuration);
+        if (class_exists($configuration)) {
+            return $this->getInstance($configuration);
+        }
 
 
         // vdt($configuration, __FUNCTION__);
@@ -150,10 +150,11 @@ class LeMarchand implements ContainerInterface
         return $this->getInstance($class_name);
     }
 
-    private function resolved($clue, $solution=null)
+    private function resolved($clue, $solution = null)
     {
-        if(!is_null($solution))
+        if (!is_null($solution)) {
             $this->resolved_cache[$clue] = $solution;
+        }
         // vd($clue, __FUNCTION__);
         return $this->resolved_cache[$clue] ?? null;
     }
@@ -165,8 +166,9 @@ class LeMarchand implements ContainerInterface
 
     private function cascadeNamespace($class_name, $mvc_type = null)
     {
-        if($this->isResolved($class_name))
-          return $this->resolved($class_name);
+        if ($this->isResolved($class_name)) {
+            return $this->resolved($class_name);
+        }
 
         // not fully namespaced, lets cascade
         foreach ($this->namespace_cascade as $ns) {
@@ -189,17 +191,17 @@ class LeMarchand implements ContainerInterface
         $wire = $this->interface_wiring[$interface];
 
         // interface + constructor params
-        if($this->hasEmbeddedConstructorParameters($wire)){
-          $class = array_shift($wire);
-          $args = $wire;
-        }
-        else{
-          $class = $wire;
-          $args = null;
+        if ($this->hasEmbeddedConstructorParameters($wire)) {
+            $class = array_shift($wire);
+            $args = $wire;
+        } else {
+            $class = $wire;
+            $args = null;
         }
 
-        if($this->isResolved($class) && $this->hasPrivateContructor($class))
-          return $this->resolved($class);
+        if ($this->isResolved($class) && $this->hasPrivateContructor($class)) {
+            return $this->resolved($class);
+        }
 
         return $this->getInstance($class, $args);
     }
@@ -212,7 +214,7 @@ class LeMarchand implements ContainerInterface
 
     private function hasEmbeddedConstructorParameters($wire)
     {
-      return is_array($wire);
+        return is_array($wire);
     }
 
     private function getInstance($class, $construction_args = [])
@@ -222,17 +224,16 @@ class LeMarchand implements ContainerInterface
             $instance = null;
 
             if (!is_null($constructor = $rc->getConstructor())) {
-              $construction_args = $this->getConstructorParameters($constructor, $construction_args);
+                $construction_args = $this->getConstructorParameters($constructor, $construction_args);
 
-              if($constructor->isPrivate()){ // singleton ?
-                // first argument is the static instance-making method
-                $singleton_method = $rc->getMethod(array_shift($construction_args));
-                // invoke the method with remaining constructor args
-                $instance = $this->resolved($class, $singleton_method->invoke(null, $construction_args));
-              }
-              else{
-                $instance = $rc->newInstanceArgs($construction_args);
-              }
+                if ($constructor->isPrivate()) { // singleton ?
+                  // first argument is the static instance-making method
+                    $singleton_method = $rc->getMethod(array_shift($construction_args));
+                  // invoke the method with remaining constructor args
+                    $instance = $this->resolved($class, $singleton_method->invoke(null, $construction_args));
+                } else {
+                    $instance = $rc->newInstanceArgs($construction_args);
+                }
             } else {
                 $instance = $rc->newInstanceArgs();
             }
@@ -242,31 +243,30 @@ class LeMarchand implements ContainerInterface
             }
 
             return $instance;
-
         } catch (\ReflectionException $e) {
             throw new LamentException($e->getMessage());
         }
     }
 
 
-    private function getConstructorParameters(\ReflectionMethod $constructor, $construction_args=[])
+    private function getConstructorParameters(\ReflectionMethod $constructor, $construction_args = [])
     {
       // vd(__FUNCTION__);
 
-      if(empty($construction_args)){
-        foreach ($constructor->getParameters() as $param) {
-          try{
-            if($param->getType())
-              $construction_args [] = $this->get($param->getType()->getName());
-            else{
-              $setting = 'settings.Constructor.'.$constructor->class.'.'.$param->getName();
-              $construction_args []= $this->getSettings($setting);
+        if (empty($construction_args)) {
+            foreach ($constructor->getParameters() as $param) {
+                try {
+                    if ($param->getType()) {
+                        $construction_args [] = $this->get($param->getType()->getName());
+                    } else {
+                        $setting = 'settings.Constructor.' . $constructor->class . '.' . $param->getName();
+                        $construction_args [] = $this->getSettings($setting);
+                    }
+                } catch (NotFoundExceptionInterface $e) {
+                    dd($e);
+                }
             }
-          }catch(NotFoundExceptionInterface $e){
-            dd($e);
-          }
         }
-      }
-      return $construction_args;
+        return $construction_args;
     }
 }
