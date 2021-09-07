@@ -164,7 +164,7 @@ class LeMarchand implements ContainerInterface
         return isset($this->resolved_cache[$clue]);
     }
 
-    private function cascadeNamespace($class_name, $mvc_type = null)
+    private function cascadeNamespace($class_name)
     {
         if ($this->isResolved($class_name)) {
             return $this->resolved($class_name);
