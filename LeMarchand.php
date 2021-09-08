@@ -2,7 +2,9 @@
 
 namespace HexMakina\LeMarchand;
 
-use Psr\Container\{ContainerInterface, ContainerExceptionInterface, NotFoundExceptionInterface};
+use Psr\Container\ContainerInterface;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 class LeMarchand implements ContainerInterface
 {
