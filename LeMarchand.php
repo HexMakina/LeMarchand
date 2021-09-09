@@ -24,11 +24,9 @@ class LeMarchand implements ContainerInterface
     // stores the automatically created instances, by class name
     private $instance_cache = [];
 
-    // public const RX_CONTROLLER_NAME = '/([a-zA-Z]+)Controller$/';
-    // public const RX_MODEL_CLASS = '/([a-zA-Z]+)(Class|Model)$/';
+
     public const RX_SETTINGS = '/^settings\./';
-    // public const RX_INTERFACE_NAME = '/([a-zA-Z]+)Interface$/';
-    // const RX_CLASS_NAME = '/([a-zA-Z]+)(Class|Model|Controller|Interface)$/';
+
     public const RX_INTERFACE = '/([a-zA-Z]+)Interface$/';
 
     public const RX_MVC = '/(Models|Controllers)\\\([a-zA-Z]+)(::class|::new)?/';
