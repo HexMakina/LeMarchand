@@ -65,14 +65,6 @@ class LeMarchand implements ContainerInterface
         return $dbg;
     }
 
-    // public function put($configuration, $instance)
-    // {
-    //     if (!is_string($configuration)) {
-    //         throw new LamentException($configuration);
-    //     }
-    //     $this->configurations[$configuration] = $instance;
-    // }
-
     public function has($configuration)
     {
         try {
@@ -146,17 +138,6 @@ class LeMarchand implements ContainerInterface
 
         return $ret;
     }
-    //
-    // private function classification($name, $type, $only_class_name = false)
-    // {
-    //     $class_name = $this->cascadeNamespace("$type\\$name");
-    //     // vd($class_name, __FUNCTION__);
-    //     if ($only_class_name === true) {
-    //         return $class_name;
-    //     }
-    //
-    //     return $this->getInstance($class_name);
-    // }
 
     private function resolved($clue, $solution = null)
     {
