@@ -20,14 +20,18 @@ class LeMarchand implements ContainerInterface
 
     // store the resolved names for performance
     private $resolved_cache = [];
+
+    // stores the automatically created instances, by class name
+    private $instance_cache = [];
+
     // public const RX_CONTROLLER_NAME = '/([a-zA-Z]+)Controller$/';
     // public const RX_MODEL_CLASS = '/([a-zA-Z]+)(Class|Model)$/';
     const RX_SETTINGS = '/^settings\./';
     // public const RX_INTERFACE_NAME = '/([a-zA-Z]+)Interface$/';
-    const RX_CLASS_NAME = '/([a-zA-Z]+)(Class|Model|Controller|Interface)$/';
+    // const RX_CLASS_NAME = '/([a-zA-Z]+)(Class|Model|Controller|Interface)$/';
     const RX_INTERFACE = '/([a-zA-Z]+)Interface$/';
 
-    const RX_MVC = '/(Models|Controllers)\\\([a-zA-Z]+)(::class)?/';
+    const RX_MVC = '/(Models|Controllers)\\\([a-zA-Z]+)(::class|::new)?/';
 
     public static function box($settings = null): ContainerInterface
     {
@@ -61,13 +65,13 @@ class LeMarchand implements ContainerInterface
         return $dbg;
     }
 
-    public function put($configuration, $instance)
-    {
-        if (!is_string($configuration)) {
-            throw new LamentException($configuration);
-        }
-        $this->configurations[$configuration] = $instance;
-    }
+    // public function put($configuration, $instance)
+    // {
+    //     if (!is_string($configuration)) {
+    //         throw new LamentException($configuration);
+    //     }
+    //     $this->configurations[$configuration] = $instance;
+    // }
 
     public function has($configuration)
     {
@@ -105,21 +109,23 @@ class LeMarchand implements ContainerInterface
 
         // vdt($configuration, __FUNCTION__);
         if (preg_match(self::RX_MVC, $configuration, $m) === 1) {
-            return $this->classification($m[2], $m[1], isset($m[3]));
+            $class_name = $this->cascadeNamespace($m[1].'\\'.$m[2]);
+            // vd($configuration, $class_name);
+
+            if(!isset($m[3]))
+              return $this->getInstance($class_name);
+
+            if($m[3] === '::class')
+              return $class_name;
+
+            if($m[3] === '::new')
+              return $this->makeInstance($class_name);
         }
 
         // if it is an interface, we respond with an instance
         if (preg_match(self::RX_INTERFACE, $configuration, $m) === 1) {
-          // vdt($configuration,__FUNCTION__);
             return $this->wireInstance($configuration);
-            // return $this->classification($m[2], $m[1], isset($m[3]));
         }
-
-        // 3. is it a class
-        // vdt($configuration, __FUNCTION__);
-        // if (preg_match(self::RX_CLASS_NAME, $configuration, $m) === 1) {
-        //     return $this->classification($m[1], $m[2]);
-        // }
 
         throw new ConfigurationException($configuration);
     }
@@ -140,17 +146,17 @@ class LeMarchand implements ContainerInterface
 
         return $ret;
     }
-
-    private function classification($name, $type, $only_class_name = false)
-    {
-        $class_name = $this->cascadeNamespace("$type\\$name");
-        // vd($class_name, __FUNCTION__);
-        if ($only_class_name === true) {
-            return $class_name;
-        }
-
-        return $this->getInstance($class_name);
-    }
+    //
+    // private function classification($name, $type, $only_class_name = false)
+    // {
+    //     $class_name = $this->cascadeNamespace("$type\\$name");
+    //     // vd($class_name, __FUNCTION__);
+    //     if ($only_class_name === true) {
+    //         return $class_name;
+    //     }
+    //
+    //     return $this->getInstance($class_name);
+    // }
 
     private function resolved($clue, $solution = null)
     {
@@ -221,35 +227,43 @@ class LeMarchand implements ContainerInterface
 
     private function getInstance($class, $construction_args = [])
     {
-        try {
-            $rc = new \ReflectionClass($class);
-            $instance = null;
+        if(isset($this->instance_cache[$class]))
+          return $this->instance_cache[$class];
 
-            if (!is_null($constructor = $rc->getConstructor())) {
-                $construction_args = $this->getConstructorParameters($constructor, $construction_args);
-
-                if ($constructor->isPrivate()) { // singleton ?
-                  // first argument is the static instance-making method
-                    $singleton_method = $rc->getMethod(array_shift($construction_args));
-                  // invoke the method with remaining constructor args
-                    $instance = $this->resolved($class, $singleton_method->invoke(null, $construction_args));
-                } else {
-                    $instance = $rc->newInstanceArgs($construction_args);
-                }
-            } else {
-                $instance = $rc->newInstanceArgs();
-            }
-
-            if ($rc->hasMethod('set_container')) {
-                $instance->set_container($this);
-            }
-
-            return $instance;
-        } catch (\ReflectionException $e) {
-            throw new LamentException($e->getMessage());
-        }
+        return $this->makeInstance($class, $construction_args);
     }
 
+    private function makeInstance($class, $construction_args = [])
+    {
+      try {
+          $rc = new \ReflectionClass($class);
+          $instance = null;
+
+          if (!is_null($constructor = $rc->getConstructor())) {
+              $construction_args = $this->getConstructorParameters($constructor, $construction_args);
+
+              if ($constructor->isPrivate()) { // singleton ?
+                // first argument is the static instance-making method
+                  $singleton_method = $rc->getMethod(array_shift($construction_args));
+                // invoke the method with remaining constructor args
+                  $instance = $this->resolved($class, $singleton_method->invoke(null, $construction_args));
+              } else {
+                  $instance = $rc->newInstanceArgs($construction_args);
+              }
+          } else {
+              $instance = $rc->newInstanceArgs();
+          }
+
+          if ($rc->hasMethod('set_container')) {
+              $instance->set_container($this);
+          }
+          $this->instance_cache[$class] = $instance;
+
+          return $instance;
+      } catch (\ReflectionException $e) {
+          throw new LamentException($e->getMessage());
+      }
+    }
 
     private function getConstructorParameters(\ReflectionMethod $constructor, $construction_args = [])
     {
