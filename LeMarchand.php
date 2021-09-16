@@ -46,20 +46,24 @@ class LeMarchand implements ContainerInterface
 
     private function __construct($settings)
     {
-        $this->configurations['settings'] = $settings;
-        if (isset($settings['LeMarchand'])) {
-            $this->namespace_cascade = $settings['LeMarchand']['cascade'] ?? [];
-            $this->interface_wiring = $settings['LeMarchand']['wiring'] ?? [];
+        if (isset($settings[__CLASS__])) {
+            $this->namespace_cascade = $settings[__CLASS__]['cascade'] ?? [];
+            $this->interface_wiring = $settings[__CLASS__]['wiring'] ?? [];
+            unset($settings[__CLASS__]);
         }
+        $this->configurations['settings'] = $settings;
     }
 
     public function __debugInfo(): array
     {
         $dbg = get_object_vars($this);
-        if (isset($dbg['configurations']['template_engine'])) {
-          // way too long of an object
-            $dbg['configurations']['template_engine'] = get_class($dbg['configurations']['template_engine']);
-        }
+
+        foreach($dbg['instance_cache'] as $class => $instance)
+          $dbg['instance_cache'][$class] = true;
+
+        foreach($dbg['interface_wiring'] as $interface => $wire)
+          $dbg['interface_wiring'][$interface] = is_array($wire) ? array_shift($wire) . ' --array #' .count($wire) : $wire;
+
         return $dbg;
     }
 
