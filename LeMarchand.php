@@ -58,11 +58,13 @@ class LeMarchand implements ContainerInterface
     {
         $dbg = get_object_vars($this);
 
-        foreach($dbg['instance_cache'] as $class => $instance)
-          $dbg['instance_cache'][$class] = true;
+        foreach ($dbg['instance_cache'] as $class => $instance) {
+            $dbg['instance_cache'][$class] = true;
+        }
 
-        foreach($dbg['interface_wiring'] as $interface => $wire)
-          $dbg['interface_wiring'][$interface] = is_array($wire) ? array_shift($wire) . ' --array #' .count($wire) : $wire;
+        foreach ($dbg['interface_wiring'] as $interface => $wire) {
+            $dbg['interface_wiring'][$interface] = is_array($wire) ? array_shift($wire) . ' --array #' . count($wire) : $wire;
+        }
 
         return $dbg;
     }
