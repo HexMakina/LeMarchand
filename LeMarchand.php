@@ -176,8 +176,6 @@ class LeMarchand implements ContainerInterface
 
     private function wireInstance($interface)
     {
-        // vd($interface, __FUNCTION__);
-
         if (!isset($this->interface_wiring[$interface])) {
             throw new ConfigurationException($interface);
         }
