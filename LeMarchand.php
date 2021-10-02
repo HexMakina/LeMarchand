@@ -64,7 +64,10 @@ class LeMarchand implements ContainerInterface
         }
 
         foreach ($dbg['interface_wiring'] as $interface => $wire) {
-            $dbg['interface_wiring'][$interface] = is_array($wire) ? array_shift($wire) . ' --array #' . count($wire) : $wire;
+            if (is_array($wire)) {
+                $wire = array_shift($wire) . ' --array #' . count($wire);
+            }
+            $dbg['interface_wiring'][$interface] = $wire;
         }
 
         return $dbg;
@@ -82,14 +85,6 @@ class LeMarchand implements ContainerInterface
         }
     }
 
-    public function isSetting($configuration): bool{
-      return preg_match(self::RX_SETTINGS, $configuration) === 1;
-    }
-
-    public function isInterface($configuration): bool{
-      return preg_match(self::RX_INTERFACE, $configuration) === 1;
-    }
-
     public function get($configuration)
     {
         if (!is_string($configuration)) {
@@ -101,7 +96,7 @@ class LeMarchand implements ContainerInterface
         }
 
         // 2. is it configuration data ?
-        if ($this->isSetting($configuration)) {
+        if (preg_match(self::RX_SETTINGS, $configuration) === 1) {
             return $this->getSettings($configuration);
         }
 
@@ -111,13 +106,12 @@ class LeMarchand implements ContainerInterface
         }
 
         // 4. is it an interface ?
-        if ($this->isInterface($configuration)) {
-          return $this->wireInstance($configuration);
+        if (preg_match(self::RX_INTERFACE, $configuration) === 1) {
+            return $this->wireInstance($configuration);
         }
 
         // 5. is it cascadable ?
         if (preg_match(self::RX_MVC, $configuration, $m) === 1) {
-
             $class_name = $this->cascadeNamespace($m[1] . '\\' . $m[2]);
 
             if (!isset($m[3])) {
