@@ -37,7 +37,7 @@ class LeMarchand implements ContainerInterface
             if (is_array($settings)) {
                 return (self::$instance = new LeMarchand($settings));
             }
-            throw new LamentException('UNABLE_TO_OPEN_BOX');
+            throw new ContainerException('UNABLE_TO_OPEN_BOX');
         }
 
         return self::$instance;
@@ -85,7 +85,7 @@ class LeMarchand implements ContainerInterface
     public function get($configuration)
     {
         if (!is_string($configuration)) {
-            throw new LamentException($configuration);
+            throw new ContainerException($configuration);
         }
         // 1. is it a first level key ?
         if (isset($this->configurations[$configuration])) {
@@ -126,7 +126,7 @@ class LeMarchand implements ContainerInterface
             return $this->wireInstance($configuration);
         }
 
-        throw new ConfigurationException($configuration);
+        throw new NotFoundException($configuration);
     }
 
 
@@ -138,7 +138,7 @@ class LeMarchand implements ContainerInterface
       //dot based hierarchy, parse and climb
         foreach (explode('.', $setting) as $k) {
             if (!isset($ret[$k])) {
-                throw new ConfigurationException($setting);
+                throw new NotFoundException($setting);
             }
             $ret = $ret[$k];
         }
@@ -173,13 +173,13 @@ class LeMarchand implements ContainerInterface
                 return $fully_namespaced;
             }
         }
-        throw new ConfigurationException($class_name);
+        throw new NotFoundException($class_name);
     }
 
     private function wireInstance($interface)
     {
         if (!isset($this->interface_wiring[$interface])) {
-            throw new ConfigurationException($interface);
+            throw new NotFoundException($interface);
         }
 
         $wire = $this->interface_wiring[$interface];
@@ -248,7 +248,7 @@ class LeMarchand implements ContainerInterface
 
             return $instance;
         } catch (\ReflectionException $e) {
-            throw new LamentException($e->getMessage());
+            throw new ContainerException($e->getMessage());
         }
     }
 

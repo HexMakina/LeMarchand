@@ -4,7 +4,7 @@ namespace HexMakina\LeMarchand;
 
 use Psr\Container\ContainerExceptionInterface;
 
-class LamentException extends \Exception implements ContainerExceptionInterface
+class ContainerException extends \Exception implements ContainerExceptionInterface
 {
     public function __construct($configuration)
     {
