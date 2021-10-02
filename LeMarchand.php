@@ -27,9 +27,10 @@ class LeMarchand implements ContainerInterface
 
     public const RX_SETTINGS = '/^settings\./';
 
+    public const RX_MVC = '/(Models|Controllers)\\\([a-zA-Z]+)(::class|::new)?/';
+
     public const RX_INTERFACE = '/([a-zA-Z]+)Interface$/';
 
-    public const RX_MVC = '/(Models|Controllers)\\\([a-zA-Z]+)(::class|::new)?/';
 
     public static function box($settings = null): ContainerInterface
     {
@@ -81,6 +82,13 @@ class LeMarchand implements ContainerInterface
         }
     }
 
+    public function isSetting($configuration): bool{
+      return preg_match(self::RX_SETTINGS, $configuration) === 1;
+    }
+
+    public function isInterface($configuration): bool{
+      return preg_match(self::RX_INTERFACE, $configuration) === 1;
+    }
 
     public function get($configuration)
     {
@@ -93,20 +101,24 @@ class LeMarchand implements ContainerInterface
         }
 
         // 2. is it configuration data ?
-        if (preg_match(self::RX_SETTINGS, $configuration, $m) === 1) {
+        if ($this->isSetting($configuration)) {
             return $this->getSettings($configuration);
         }
 
-        // 3. is it an existing class
+        // 3. is it an existing class ?
         if (class_exists($configuration)) {
             return $this->getInstance($configuration);
         }
 
+        // 4. is it an interface ?
+        if ($this->isInterface($configuration)) {
+          return $this->wireInstance($configuration);
+        }
 
-        // vdt($configuration, __FUNCTION__);
+        // 5. is it cascadable ?
         if (preg_match(self::RX_MVC, $configuration, $m) === 1) {
+
             $class_name = $this->cascadeNamespace($m[1] . '\\' . $m[2]);
-            // vd($configuration, $class_name);
 
             if (!isset($m[3])) {
                 return $this->getInstance($class_name);
@@ -119,11 +131,6 @@ class LeMarchand implements ContainerInterface
             if ($m[3] === '::new') {
                 return $this->makeInstance($class_name);
             }
-        }
-
-        // if it is an interface, we respond with an instance
-        if (preg_match(self::RX_INTERFACE, $configuration, $m) === 1) {
-            return $this->wireInstance($configuration);
         }
 
         throw new NotFoundException($configuration);
