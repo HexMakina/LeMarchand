@@ -148,7 +148,8 @@ class LeMarchand implements ContainerInterface
 
         return $ret;
     }
-    private function resolved($clue, $solution = null)
+    
+    public function resolved($clue, $solution = null)
     {
         if (!is_null($solution)) {
             $this->resolved_cache[$clue] = $solution;
@@ -224,54 +225,8 @@ class LeMarchand implements ContainerInterface
 
     private function makeInstance($class, $construction_args = [])
     {
-        try {
-            $rc = new \ReflectionClass($class);
-            $instance = null;
-            
-            if (!is_null($constructor = $rc->getConstructor())) {
-                $construction_args = $this->getConstructorParameters($constructor, $construction_args);
-
-                if ($constructor->isPrivate()) { // singleton ?
-                  // first argument is the static instance-making method
-                    $singleton_method = $rc->getMethod(array_shift($construction_args));
-                  // invoke the method with remaining constructor args
-                    $instance = $this->resolved($class, $singleton_method->invoke(null, $construction_args));
-                } else {
-                    $instance = $rc->newInstanceArgs($construction_args);
-                }
-            } else {
-                $instance = $rc->newInstanceArgs();
-            }
-
-            if ($rc->hasMethod('set_container')) {
-                $instance->set_container($this);
-            }
-            $this->instance_cache[$class] = $instance;
-
-            return $instance;
-        } catch (\ReflectionException $e) {
-            throw new ContainerException($e->getMessage());
-        }
-    }
-
-    private function getConstructorParameters(\ReflectionMethod $constructor, $construction_args = [])
-    {
-      // vd(__FUNCTION__);
-
-        if (empty($construction_args)) {
-            foreach ($constructor->getParameters() as $param) {
-                // try {
-                if ($param->getType()) {
-                    $construction_args [] = $this->get($param->getType()->getName());
-                } else {
-                    $setting = 'settings.Constructor.' . $constructor->class . '.' . $param->getName();
-                    $construction_args [] = $this->getSettings($setting);
-                }
-                // } catch (NotFoundExceptionInterface $e) {
-                //     dd($e);
-                // }
-            }
-        }
-        return $construction_args;
+        $instance = ReflectionFactory::make($class, $construction_args, $this);
+        $this->instance_cache[$class] = $instance;
+        return $instance;
     }
 }

@@ -1,0 +1,51 @@
+<?php
+
+namespace HexMakina\LeMarchand;
+
+class ReflectionFactory
+{
+  public static function make($class, $construction_args = [], $container){
+    try {
+        $rc = new \ReflectionClass($class);
+        $instance = null;
+
+        if (!is_null($constructor = $rc->getConstructor())) {
+            $construction_args = self::getConstructorParameters($constructor, $construction_args, $container);
+
+            if ($constructor->isPrivate()) { // singleton ?
+              // first argument is the static instance-making method
+                $singleton_method = $rc->getMethod(array_shift($construction_args));
+                // invoke the method with remaining constructor args
+                $instance = $container->resolved($class, $singleton_method->invoke(null, $construction_args));
+            } else {
+                $instance = $rc->newInstanceArgs($construction_args);
+            }
+        } else {
+            $instance = $rc->newInstanceArgs();
+        }
+
+        if ($rc->hasMethod('set_container')) {
+            $instance->set_container($container);
+        }
+        return $instance;
+
+    } catch (\ReflectionException $e) {
+        throw new ContainerException($e->getMessage());
+    }
+  }
+
+  private static function getConstructorParameters(\ReflectionMethod $constructor, $construction_args = [], $container)
+  {
+      if (empty($construction_args)) {
+          foreach ($constructor->getParameters() as $param) {
+              if ($param->getType()) {
+                  $construction_args [] = $container->get($param->getType()->getName());
+              } else {
+                  $setting = 'settings.Constructor.' . $constructor->class . '.' . $param->getName();
+                  $construction_args [] = $container->getSettings($setting);
+              }
+          }
+      }
+      return $construction_args;
+  }
+}
