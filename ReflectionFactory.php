@@ -25,21 +25,23 @@ class ReflectionFactory
             self::setCacheFor($class, $instance);
 
             return $instance;
-
         } catch (\ReflectionException $e) {
             throw new ContainerException($e->getMessage());
         }
     }
 
-    public static function hasCacheFor($class){
+    public static function hasCacheFor($class)
+    {
         return isset(self::$instance_cache[$class])
     }
 
-    public static function getCacheFor($class){
+    public static function getCacheFor($class)
+    {
         return self::$instance_cache[$class];
     }
 
-    public static function setCacheFor($class, $instance){
+    public static function setCacheFor($class, $instance)
+    {
         self::$instance_cache[$class] = $instance;
     }
 

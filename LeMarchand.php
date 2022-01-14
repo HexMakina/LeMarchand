@@ -138,9 +138,8 @@ class LeMarchand implements ContainerInterface
             $ret = $class_name;
         } elseif ($configuration->hasNewInstanceModifier()) {
             $ret = $this->makeInstance($class_name);
-        }
-        else{
-          $ret = $this->getInstance($class_name);
+        } else {
+            $ret = $this->getInstance($class_name);
         }
 
         return $ret;
@@ -183,8 +182,9 @@ class LeMarchand implements ContainerInterface
 
     private function getInstance($class, $construction_args = [])
     {
-        if(ReflectionFactory::hasCacheFor($class))
-          return ReflectionFactory::getCacheFor($class);
+        if (ReflectionFactory::hasCacheFor($class)) {
+            return ReflectionFactory::getCacheFor($class);
+        }
 
         return $this->makeInstance($class, $construction_args);
     }
