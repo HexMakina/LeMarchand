@@ -86,15 +86,15 @@ class LeMarchand implements ContainerInterface
             throw new ContainerException($configuration_string);
         }
 
-        $ret = null;
-
-
         if ($this->isFirstLevelKey($configuration_string)) {
             return $this->configurations[$configuration_string];
         }
 
         // not a simple configuration string, it has meaning
         $configuration = new Configuration($configuration_string);
+
+        $ret = null;
+
         if ($configuration->isSettings()) {
             $ret = $this->getSettings($configuration);
         } elseif (class_exists($lament)) {
@@ -102,17 +102,7 @@ class LeMarchand implements ContainerInterface
         } elseif ($configuration->isInterface()) {
             $ret = $this->wireInstance($configuration);
         } elseif ($configuration->hasModelOrController()) {
-            // 5. is it cascadable ?
-
-            $class_name = $configuration->getModelOrControllerName();
-            $class_name = $this->cascadeNamespace($class_name);
-
-            if ($configuration->hasClassNameModifier()) {
-                $ret = $class_name;
-            } elseif ($configuration->hasNewInstanceModifier()) {
-                $ret = $this->makeInstance($class_name);
-            }
-            $ret = $this->getInstance($class_name);
+            $ret = $this->cascadeInstance($configuration);
         }
 
         if (is_null($ret)) {
@@ -122,7 +112,7 @@ class LeMarchand implements ContainerInterface
         return $ret;
     }
 
-    public function isFirstLevelKey($configuration_string)
+    private function isFirstLevelKey($configuration_string)
     {
         return isset($this->configurations[$configuration_string]);
     }
@@ -143,6 +133,21 @@ class LeMarchand implements ContainerInterface
         return $ret;
     }
 
+    private function cascadeInstance($configuration){
+        $class_name = $configuration->getModelOrControllerName();
+        $class_name = $this->cascadeNamespace($class_name);
+
+        if ($configuration->hasClassNameModifier()) {
+            $ret = $class_name;
+        }
+        elseif ($configuration->hasNewInstanceModifier()) {
+            $ret = $this->makeInstance($class_name);
+        }
+
+        $ret = $this->getInstance($class_name);
+
+        return $ret;
+    }
     private function resolved($clue, $solution = null)
     {
         if (!is_null($solution)) {
@@ -222,7 +227,7 @@ class LeMarchand implements ContainerInterface
         try {
             $rc = new \ReflectionClass($class);
             $instance = null;
-
+            
             if (!is_null($constructor = $rc->getConstructor())) {
                 $construction_args = $this->getConstructorParameters($constructor, $construction_args);
 
