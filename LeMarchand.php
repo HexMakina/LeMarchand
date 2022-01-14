@@ -91,6 +91,17 @@ class LeMarchand implements ContainerInterface
         }
 
         // not a simple configuration string, it has meaning
+        $res = $this->processComplexConfigurationString($configuration_string)
+
+        if (!is_null($res)) {
+            throw new NotFoundException($configuration_string);
+        }
+
+        return $res;
+    }
+
+    private function processComplexConfigurationString($configuration_string)
+    {
         $configuration = new Configuration($configuration_string);
 
         $ret = null;
@@ -103,10 +114,6 @@ class LeMarchand implements ContainerInterface
             $ret = $this->wireInstance($configuration);
         } elseif ($configuration->hasModelOrController()) {
             $ret = $this->cascadeInstance($configuration);
-        }
-
-        if (is_null($ret)) {
-            throw new NotFoundException($configuration);
         }
 
         return $ret;
@@ -148,7 +155,7 @@ class LeMarchand implements ContainerInterface
 
         return $ret;
     }
-    
+
     public function resolved($clue, $solution = null)
     {
         if (!is_null($solution)) {
