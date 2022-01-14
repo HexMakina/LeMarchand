@@ -108,7 +108,7 @@ class LeMarchand implements ContainerInterface
 
         if ($configuration->isSettings()) {
             $ret = $this->getSettings($configuration);
-        } elseif (class_exists($lament)) {
+        } elseif (class_exists($configuration_string)) {
             $ret = $this->getInstance($configuration);
         } elseif ($configuration->isInterface()) {
             $ret = $this->wireInstance($configuration);
@@ -150,8 +150,9 @@ class LeMarchand implements ContainerInterface
         } elseif ($configuration->hasNewInstanceModifier()) {
             $ret = $this->makeInstance($class_name);
         }
-
-        $ret = $this->getInstance($class_name);
+        else{
+          $ret = $this->getInstance($class_name);
+        }
 
         return $ret;
     }
