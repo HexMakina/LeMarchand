@@ -9,21 +9,14 @@ use Psr\Container\NotFoundExceptionInterface;
 class LeMarchand implements ContainerInterface
 {
     private static $instance = null;
-    // stores all the settings
+
     private $configurations = [];
 
-    // stores the namespace cascade
-    private $namespace_cascade = [];
-
-    // stores the interface to class wiring
     private $interface_wiring = [];
 
-    // store the resolved names for performance
-    private $resolved_cache = [];
-
-    // stores the automatically created instances, by class name
     private $instance_cache = [];
 
+    private $resolver = null;
 
     public static function box($settings = null): ContainerInterface
     {
@@ -41,7 +34,7 @@ class LeMarchand implements ContainerInterface
     private function __construct($settings)
     {
         if (isset($settings[__CLASS__])) {
-            $this->namespace_cascade = $settings[__CLASS__]['cascade'] ?? [];
+            $this->resolver = new Resolver($settings[__CLASS__]['cascade'] ?? []);
             $this->interface_wiring = $settings[__CLASS__]['wiring'] ?? [];
             unset($settings[__CLASS__]);
         }
@@ -91,7 +84,7 @@ class LeMarchand implements ContainerInterface
         }
 
         // not a simple configuration string, it has meaning
-        $res = $this->processComplexConfigurationString($configuration_string);
+        $res = $this->getComplexConfigurationString($configuration_string);
 
         if (!is_null($res)) {
             throw new NotFoundException($configuration_string);
@@ -100,7 +93,7 @@ class LeMarchand implements ContainerInterface
         return $res;
     }
 
-    private function processComplexConfigurationString($configuration_string)
+    private function getComplexConfigurationString($configuration_string)
     {
         $configuration = new Configuration($configuration_string);
 
@@ -143,7 +136,7 @@ class LeMarchand implements ContainerInterface
     private function cascadeInstance(Configuration $configuration)
     {
         $class_name = $configuration->getModelOrControllerName();
-        $class_name = $this->cascadeNamespace($class_name);
+        $class_name = $this->resolver->cascadeNamespace($class_name);
 
         if ($configuration->hasClassNameModifier()) {
             $ret = $class_name;
@@ -155,36 +148,6 @@ class LeMarchand implements ContainerInterface
         }
 
         return $ret;
-    }
-
-    public function resolved($clue, $solution = null)
-    {
-        if (!is_null($solution)) {
-            $this->resolved_cache[$clue] = $solution;
-        }
-        // vd($clue, __FUNCTION__);
-        return $this->resolved_cache[$clue] ?? null;
-    }
-
-    private function isResolved($clue): bool
-    {
-        return isset($this->resolved_cache[$clue]);
-    }
-
-    private function cascadeNamespace($class_name)
-    {
-        if ($this->isResolved($class_name)) {
-            return $this->resolved($class_name);
-        }
-
-        // not fully namespaced, lets cascade
-        foreach ($this->namespace_cascade as $ns) {
-            if (class_exists($fully_namespaced = $ns . $class_name)) {
-                $this->resolved($class_name, $fully_namespaced);
-                return $fully_namespaced;
-            }
-        }
-        throw new NotFoundException($class_name);
     }
 
     private function wireInstance($interface)
@@ -204,8 +167,8 @@ class LeMarchand implements ContainerInterface
             $args = null;
         }
 
-        if ($this->isResolved($class) && $this->hasPrivateContructor($class)) {
-            return $this->resolved($class);
+        if ($this->resolver->isResolved($class) && $this->hasPrivateContructor($class)) {
+            return $this->resolver->resolved($class);
         }
 
         return $this->getInstance($class, $args);
