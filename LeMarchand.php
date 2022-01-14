@@ -25,13 +25,6 @@ class LeMarchand implements ContainerInterface
     private $instance_cache = [];
 
 
-    public const RX_SETTINGS = '/^settings\./';
-
-    public const RX_MVC = '/(Models|Controllers)\\\([a-zA-Z]+)(::class|::new)?/';
-
-    public const RX_INTERFACE = '/([a-zA-Z]+)Interface$/';
-
-
     public static function box($settings = null): ContainerInterface
     {
         if (is_null(self::$instance)) {
@@ -83,72 +76,55 @@ class LeMarchand implements ContainerInterface
         } catch (ContainerExceptionInterface $e) {
             return false;
         }
+        return false;
     }
 
 
-    public function get($configuration)
+    public function get($configuration_string)
     {
-        if (!is_string($configuration)) {
-            throw new ContainerException($configuration);
+        if (!is_string($configuration_string)) {
+            throw new ContainerException($configuration_string);
         }
 
         $ret = null;
 
-        if ($this->isFirstLevelKey($configuration)) {
-            $ret = $this->configurations[$configuration];
+
+        if ($this->isFirstLevelKey($configuration_string)) {
+            return $this->configurations[$configuration_string];
         }
-        elseif ($this->isSettings($configuration)) {
+
+        // not a simple configuration string, it has meaning
+        $configuration = new Configuration($configuration_string);
+        if ($configuration->isSettings()) {
             $ret = $this->getSettings($configuration);
-        }
-        elseif (class_exists($configuration)) {
+        } elseif (class_exists($lament)) {
             $ret = $this->getInstance($configuration);
-        }
-        elseif ($this->isInterface($configuration)) {
+        } elseif ($configuration->isInterface()) {
             $ret = $this->wireInstance($configuration);
-        }
-        elseif ($this->hasModelOrController($configuration)) {
+        } elseif ($configuration->hasModelOrController()) {
             // 5. is it cascadable ?
-            preg_match(self::RX_MVC, $configuration, $m);
 
-            $class_name = $this->cascadeNamespace($m[1] . '\\' . $m[2]);
+            $class_name = $configuration->getModelOrControllerName();
+            $class_name = $this->cascadeNamespace($class_name);
 
-            if($this->hasClassNameModifier($configuration)){
-              $ret = $class_name;
-            }
-            elseif($this->hasNewInstanceModifier($configuration)){
-              $ret = $this->makeInstance($class_name);
+            if ($configuration->hasClassNameModifier()) {
+                $ret = $class_name;
+            } elseif ($configuration->hasNewInstanceModifier()) {
+                $ret = $this->makeInstance($class_name);
             }
             $ret = $this->getInstance($class_name);
         }
 
-        if(is_null($ret))
-          throw new NotFoundException($configuration);
+        if (is_null($ret)) {
+            throw new NotFoundException($configuration);
+        }
 
         return $ret;
     }
 
-    private function isFirstLevelKey($configuration){
-      return isset($this->configurations[$configuration]);
-    }
-
-    private function isSettings($configuration){
-      return preg_match(self::RX_SETTINGS, $configuration) === 1;
-    }
-
-    private function isInterface($configuration){
-      return preg_match(self::RX_INTERFACE, $configuration) === 1;
-    }
-
-    private function isModelOrController($configuration){
-      return preg_match(self::RX_MVC, $configuration) === 1;
-    }
-
-    private function hasClassNameModifier($configuration){
-      return strpos($configuration, '::class') !== false;
-    }
-
-    private function hasNewInstanceModifier($configuration){
-      return strpos($configuration, '::new') !== false;
+    public function isFirstLevelKey($configuration_string)
+    {
+        return isset($this->configurations[$configuration_string]);
     }
 
     private function getSettings($setting)
