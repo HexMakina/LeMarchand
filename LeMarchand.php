@@ -140,14 +140,14 @@ class LeMarchand implements ContainerInterface
         return $ret;
     }
 
-    private function cascadeInstance(Configuration $configuration){
+    private function cascadeInstance(Configuration $configuration)
+    {
         $class_name = $configuration->getModelOrControllerName();
         $class_name = $this->cascadeNamespace($class_name);
 
         if ($configuration->hasClassNameModifier()) {
             $ret = $class_name;
-        }
-        elseif ($configuration->hasNewInstanceModifier()) {
+        } elseif ($configuration->hasNewInstanceModifier()) {
             $ret = $this->makeInstance($class_name);
         }
 

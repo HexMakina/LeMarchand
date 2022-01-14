@@ -49,6 +49,4 @@ class Configuration
     {
         return strpos($this->lament, '::new') !== false;
     }
-
-
 }
