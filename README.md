@@ -7,7 +7,7 @@
 [![License](http://poser.pugx.org/hexmakina/le-marchand/license)](https://packagist.org/packages/hexmakina/le-marchand)
 
 # LeMarchand
-Basic PSR-11 container build for kadro framework, for now being a Service Locator, not a Dependency Injection
+Basic PSR-11 container build for kadro framework, for now being a Service Locator flirting with notions of Dependency Injection
 
 
 # Install
