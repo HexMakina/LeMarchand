@@ -112,7 +112,7 @@ class LeMarchand implements ContainerInterface
             $ret = $this->getInstance($configuration);
         } elseif ($configuration->isInterface()) {
             $ret = $this->wireInstance($configuration);
-        } elseif ($configuration->hasModelOrController()) {
+        } elseif ($configuration->isModelOrController()) {
             $ret = $this->cascadeInstance($configuration);
         }
 
@@ -140,7 +140,7 @@ class LeMarchand implements ContainerInterface
         return $ret;
     }
 
-    private function cascadeInstance($configuration){
+    private function cascadeInstance(Configuration $configuration){
         $class_name = $configuration->getModelOrControllerName();
         $class_name = $this->cascadeNamespace($class_name);
 
