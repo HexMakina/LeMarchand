@@ -4,6 +4,8 @@ namespace HexMakina\LeMarchand;
 
 class ReflectionFactory
 {
+    private static $instance_cache = [];
+
     public static function make($class, $construction_args = [], $container)
     {
         try {
@@ -15,14 +17,30 @@ class ReflectionFactory
             } else {
                 $instance = $rc->newInstanceArgs();
             }
-        
+
             if ($rc->hasMethod('set_container')) {
                 $instance->set_container($container);
             }
+
+            self::setCacheFor($class, $instance);
+
             return $instance;
+
         } catch (\ReflectionException $e) {
             throw new ContainerException($e->getMessage());
         }
+    }
+
+    public static function hasCacheFor($class){
+        return isset(self::$instance_cache[$class])
+    }
+
+    public static function getCacheFor($class){
+        return self::$instance_cache[$class];
+    }
+
+    public static function setCacheFor($class, $instance){
+        self::$instance_cache[$class] = $instance;
     }
 
     private static function makeWithContructorArgs(\ReflectionClass $rc, $construction_args, $container)

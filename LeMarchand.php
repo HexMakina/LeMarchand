@@ -14,7 +14,7 @@ class LeMarchand implements ContainerInterface
 
     private $interface_wiring = [];
 
-    private $instance_cache = [];
+
 
     private $resolver = null;
 
@@ -44,10 +44,6 @@ class LeMarchand implements ContainerInterface
     public function __debugInfo(): array
     {
         $dbg = get_object_vars($this);
-
-        foreach ($dbg['instance_cache'] as $class => $instance) {
-            $dbg['instance_cache'][$class] = true;
-        }
 
         foreach ($dbg['interface_wiring'] as $interface => $wire) {
             if (is_array($wire)) {
@@ -187,9 +183,8 @@ class LeMarchand implements ContainerInterface
 
     private function getInstance($class, $construction_args = [])
     {
-        if (isset($this->instance_cache[$class])) {
-            return $this->instance_cache[$class];
-        }
+        if(ReflectionFactory::hasCacheFor($class))
+          return ReflectionFactory::getCacheFor($class);
 
         return $this->makeInstance($class, $construction_args);
     }
@@ -197,7 +192,6 @@ class LeMarchand implements ContainerInterface
     private function makeInstance($class, $construction_args = [])
     {
         $instance = ReflectionFactory::make($class, $construction_args, $this);
-        $this->instance_cache[$class] = $instance;
         return $instance;
     }
 }
