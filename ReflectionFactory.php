@@ -32,7 +32,7 @@ class ReflectionFactory
 
     public static function hasCacheFor($class)
     {
-        return isset(self::$instance_cache[$class])
+        return isset(self::$instance_cache[$class]);
     }
 
     public static function getCacheFor($class)
