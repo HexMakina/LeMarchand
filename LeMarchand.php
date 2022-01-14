@@ -91,7 +91,7 @@ class LeMarchand implements ContainerInterface
         }
 
         // not a simple configuration string, it has meaning
-        $res = $this->processComplexConfigurationString($configuration_string)
+        $res = $this->processComplexConfigurationString($configuration_string);
 
         if (!is_null($res)) {
             throw new NotFoundException($configuration_string);
