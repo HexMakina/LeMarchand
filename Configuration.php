@@ -19,6 +19,10 @@ class Configuration
         $this->lament = $configuration_string;
     }
 
+    public function __toString(){
+      return $this->lament;
+    }
+
     public function isSettings()
     {
         return preg_match(self::RX_SETTINGS, $this->lament) === 1;
