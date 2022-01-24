@@ -70,12 +70,13 @@ class ReflectionFactory
 
     private static function getConstructorParameters(\ReflectionMethod $constructor, ContainerInterface $container)
     {
+        $construction_args = [];
         foreach ($constructor->getParameters() as $param) {
             if ($param->getType()) {
                 $construction_args [] = $container->get($param->getType()->getName());
             } else {
                 $setting = 'settings.Constructor.' . $constructor->class . '.' . $param->getName();
-                $construction_args [] = $container->getSettings($setting);
+                $construction_args [] = $container->get($setting);
             }
         }
         return $construction_args;
