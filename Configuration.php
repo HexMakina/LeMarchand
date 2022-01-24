@@ -20,6 +20,10 @@ class Configuration
     }
 
     public function __toString(){
+      return $this->configurationString();
+    }
+
+    public function configurationString(){
       return $this->lament;
     }
 

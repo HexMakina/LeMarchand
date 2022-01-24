@@ -145,8 +145,10 @@ class LeMarchand implements ContainerInterface
         return $ret;
     }
 
-    private function wireInstance($interface)
+    private function wireInstance(Configuration $configuration)
     {
+        $interface = $configuration->configurationString();
+        
         if (!isset($this->interface_wiring[$interface])) {
             throw new NotFoundException($interface);
         }
