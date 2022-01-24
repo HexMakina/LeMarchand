@@ -14,8 +14,6 @@ class LeMarchand implements ContainerInterface
 
     private $interface_wiring = [];
 
-
-
     private $resolver = null;
 
     public static function box($settings = null): ContainerInterface
@@ -89,6 +87,10 @@ class LeMarchand implements ContainerInterface
         return $res;
     }
 
+    public function resolver(){
+        return $this->resolver;
+    }
+    
     private function getComplexConfigurationString($configuration_string)
     {
         $configuration = new Configuration($configuration_string);
@@ -148,7 +150,7 @@ class LeMarchand implements ContainerInterface
     private function wireInstance(Configuration $configuration)
     {
         $interface = $configuration->configurationString();
-        
+
         if (!isset($this->interface_wiring[$interface])) {
             throw new NotFoundException($interface);
         }

@@ -2,11 +2,13 @@
 
 namespace HexMakina\LeMarchand;
 
+use Psr\Container\ContainerInterface;
+
 class ReflectionFactory
 {
     private static $instance_cache = [];
 
-    public static function make($class, $construction_args = [], $container)
+    public static function make($class, $construction_args = [], ContainerInterface $container)
     {
         try {
             $rc = new \ReflectionClass($class);
@@ -45,17 +47,20 @@ class ReflectionFactory
         self::$instance_cache[$class] = $instance;
     }
 
-    private static function makeWithContructorArgs(\ReflectionClass $rc, $construction_args, $container)
+    private static function makeWithContructorArgs(\ReflectionClass $rc, $construction_args, ContainerInterface $container)
     {
         $constructor = $rc->getConstructor();
-        $construction_args = self::getConstructorParameters($constructor, $construction_args, $container);
+
+        if(empty($construction_args))
+          $construction_args = self::getConstructorParameters($constructor, $container);
 
         $instance = null;
         if ($constructor->isPrivate()) { // singleton ?
           // first argument is the static instance-making method
             $singleton_method = $rc->getMethod(array_shift($construction_args));
+            $construction_args = array_shift($construction_args);
             // invoke the method with remaining constructor args
-            $instance = $container->resolved($rc->getName(), $singleton_method->invoke(null, $construction_args));
+            $instance = $container->resolver()->resolved($rc->getName(), $singleton_method->invoke(null, $construction_args));
         } else {
             $instance = $rc->newInstanceArgs($construction_args);
         }
@@ -63,16 +68,14 @@ class ReflectionFactory
         return $instance;
     }
 
-    private static function getConstructorParameters(\ReflectionMethod $constructor, $construction_args = [], $container)
+    private static function getConstructorParameters(\ReflectionMethod $constructor, ContainerInterface $container)
     {
-        if (empty($construction_args)) {
-            foreach ($constructor->getParameters() as $param) {
-                if ($param->getType()) {
-                    $construction_args [] = $container->get($param->getType()->getName());
-                } else {
-                    $setting = 'settings.Constructor.' . $constructor->class . '.' . $param->getName();
-                    $construction_args [] = $container->getSettings($setting);
-                }
+        foreach ($constructor->getParameters() as $param) {
+            if ($param->getType()) {
+                $construction_args [] = $container->get($param->getType()->getName());
+            } else {
+                $setting = 'settings.Constructor.' . $constructor->class . '.' . $param->getName();
+                $construction_args [] = $container->getSettings($setting);
             }
         }
         return $construction_args;
