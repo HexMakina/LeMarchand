@@ -55,15 +55,16 @@ class LeMarchand implements ContainerInterface
 
     public function has($configuration)
     {
+        $ret = false;
+        
         try {
             $this->get($configuration);
-            return true;
+            $ret = true;
         } catch (NotFoundExceptionInterface $e) {
-            return false;
         } catch (ContainerExceptionInterface $e) {
-            return false;
         }
-        return false;
+
+        return $ret;
     }
 
 
