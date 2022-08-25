@@ -8,7 +8,7 @@ class ReflectionFactory
 {
     private static $instance_cache = [];
 
-    public static function make($class, $construction_args = [], ContainerInterface $container)
+    public static function make($class, $construction_args, ContainerInterface $container)
     {
         try {
             $rc = new \ReflectionClass($class);
