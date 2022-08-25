@@ -87,7 +87,8 @@ class LeMarchand implements ContainerInterface
         return $res;
     }
 
-    public function resolver(){
+    public function resolver()
+    {
         return $this->resolver;
     }
 

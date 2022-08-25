@@ -4,7 +4,6 @@ namespace HexMakina\LeMarchand;
 
 class Configuration
 {
-
     public const RX_SETTINGS = '/^settings\./';
 
     public const RX_MVC = '/(Models|Controllers)\\\([a-zA-Z]+)(::class|::new)?/';
@@ -19,12 +18,14 @@ class Configuration
         $this->lament = $configuration_string;
     }
 
-    public function __toString(){
-      return $this->configurationString();
+    public function __toString()
+    {
+        return $this->configurationString();
     }
 
-    public function configurationString(){
-      return $this->lament;
+    public function configurationString()
+    {
+        return $this->lament;
     }
 
     public function isSettings()

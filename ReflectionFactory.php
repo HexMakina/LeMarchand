@@ -47,12 +47,16 @@ class ReflectionFactory
         self::$instance_cache[$class] = $instance;
     }
 
-    private static function makeWithContructorArgs(\ReflectionClass $rc, $construction_args, ContainerInterface $container)
-    {
+    private static function makeWithContructorArgs(
+        \ReflectionClass $rc,
+        $construction_args,
+        ContainerInterface $container
+    ) {
         $constructor = $rc->getConstructor();
 
-        if(empty($construction_args))
-          $construction_args = self::getConstructorParameters($constructor, $container);
+        if (empty($construction_args)) {
+            $construction_args = self::getConstructorParameters($constructor, $container);
+        }
 
         $instance = null;
         if ($constructor->isPrivate()) { // singleton ?
@@ -60,7 +64,10 @@ class ReflectionFactory
             $singleton_method = $rc->getMethod(array_shift($construction_args));
             $construction_args = array_shift($construction_args);
             // invoke the method with remaining constructor args
-            $instance = $container->resolver()->resolved($rc->getName(), $singleton_method->invoke(null, $construction_args));
+            $instance = $container->resolver()->resolved(
+                $rc->getName(),
+                $singleton_method->invoke(null, $construction_args)
+            );
         } else {
             $instance = $rc->newInstanceArgs($construction_args);
         }
