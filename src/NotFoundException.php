@@ -8,6 +8,6 @@ class NotFoundException extends \Exception implements NotFoundExceptionInterface
 {
     public function __construct($configuration)
     {
-        return parent::__construct("Unkown configuration '$configuration'");
+        parent::__construct("Unkown configuration '$configuration'");
     }
 }
