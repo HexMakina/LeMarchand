@@ -50,7 +50,7 @@ class ReflectionFactory
     private static function makeWithContructorArgs(
         \ReflectionClass $rc,
         $construction_args,
-        ContainerInterface $container
+        LeMarchand $container
     ) {
         $constructor = $rc->getConstructor();
 
