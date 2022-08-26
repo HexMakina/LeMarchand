@@ -56,7 +56,7 @@ class LeMarchand implements ContainerInterface
     public function has($configuration)
     {
         $ret = false;
-        
+
         try {
             $this->get($configuration);
             $ret = true;
