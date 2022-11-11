@@ -29,45 +29,44 @@ class Configuration
         return $this->lament;
     }
 
-    public function id() : string
+    public function id(): string
     {
-      return $this->lament;
+        return $this->lament;
     }
 
-    public function container() : ContainerInterface
+    public function container(): ContainerInterface
     {
-      return $this->box;
+        return $this->box;
     }
 
-    public function resolver() : Resolver
+    public function resolver(): Resolver
     {
-      return $this->box->resolver();
+        return $this->box->resolver();
     }
 
-    public function isSettings() : bool
+    public function isSettings(): bool
     {
-      return preg_match(self::RX_SETTINGS, $this->lament) === 1;
+        return preg_match(self::RX_SETTINGS, $this->lament) === 1;
     }
 
-    public function isExistingClass() : bool
+    public function isExistingClass(): bool
     {
-      return class_exists($this->lament);
+        return class_exists($this->lament);
     }
 
-    public function isInterface() : bool
+    public function isInterface(): bool
     {
-      return preg_match(self::RX_INTERFACE, $this->lament) === 1;
+        return preg_match(self::RX_INTERFACE, $this->lament) === 1;
     }
 
-    public function rxModelOrController() : ?string
+    public function rxModelOrController(): ?string
     {
         $ret = null;
 
-        $m=[];
-        if(preg_match(self::RX_MVC, $this->lament, $m) === 1){
+        $m = [];
+        if (preg_match(self::RX_MVC, $this->lament, $m) === 1) {
             $ret = $m[1] . '\\' . $m[2];
-        }
-        else{
+        } else {
         }
         return $ret;
     }
@@ -81,5 +80,4 @@ class Configuration
     {
         return strpos($this->lament, '::new') !== false;
     }
-
 }

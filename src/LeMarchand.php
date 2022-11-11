@@ -54,9 +54,9 @@ class LeMarchand implements ContainerInterface
         return $dbg;
     }
 
-    public function resolver() : Resolver
+    public function resolver(): Resolver
     {
-      return $this->resolver;
+        return $this->resolver;
     }
 
     public function has($id)
@@ -92,8 +92,9 @@ class LeMarchand implements ContainerInterface
             ?? $prober->probeInterface($this->interface_wiring)
             ?? $prober->probeCascade();
 
-        if(is_null($res))
+        if (is_null($res)) {
             throw new NotFoundException($id);
+        }
 
         return $res;
     }
