@@ -72,12 +72,12 @@ class Configuration
         return $ret;
     }
 
-    private function hasClassNameModifier()
+    public function hasClassNameModifier()
     {
         return strpos($this->lament, '::class') !== false;
     }
 
-    private function hasNewInstanceModifier()
+    public function hasNewInstanceModifier()
     {
         return strpos($this->lament, '::new') !== false;
     }
