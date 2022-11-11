@@ -59,10 +59,10 @@ class LeMarchand implements ContainerInterface
       return $this->resolver;
     }
 
-    public function has($configuration)
+    public function has($id)
     {
         try {
-            $this->get($configuration);
+            $this->get($id);
             return true;
         } catch (NotFoundExceptionInterface $e) {
             return false;
@@ -73,27 +73,27 @@ class LeMarchand implements ContainerInterface
     }
 
 
-    public function get($configuration_string)
+    public function get($id)
     {
-        if (!is_string($configuration_string)) {
-            throw new ContainerException($configuration_string);
+        if (!is_string($id)) {
+            throw new ContainerException($id);
         }
 
-        if (isset($this->configurations[$configuration_string])) {
-            return $this->configurations[$configuration_string];
+        if (isset($this->configurations[$id])) {
+            return $this->configurations[$id];
         }
-
 
         // not a simple configuration string, it has meaning
-        $configuration = new Configuration($configuration_string, $this);
+        $configuration = new Configuration($id, $this);
+        $prober = new Prober($configuration);
 
-        $res = $configuration->probeSettings($this->configurations)
-            ?? $configuration->probeClasses()
-            ?? $configuration->probeInterface($this->interface_wiring)
-            ?? $configuration->probeCascade();
+        $res = $prober->probeSettings($this->configurations)
+            ?? $prober->probeClasses()
+            ?? $prober->probeInterface($this->interface_wiring)
+            ?? $prober->probeCascade();
 
         if(is_null($res))
-            throw new NotFoundException($configuration_string);
+            throw new NotFoundException($id);
 
         return $res;
     }
