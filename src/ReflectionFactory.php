@@ -8,6 +8,12 @@ class ReflectionFactory
 {
     private static $instance_cache = [];
 
+    public static function get($class, $construction_args, ContainerInterface $container)
+    {
+        return ReflectionFactory::getCacheFor($class)
+            ?? ReflectionFactory::make($class, $construction_args, $container) ?? null;
+    }
+
     public static function make($class, $construction_args, ContainerInterface $container)
     {
         try {
@@ -20,9 +26,9 @@ class ReflectionFactory
                 $instance = $rc->newInstanceArgs();
             }
 
-            if ($rc->hasMethod('set_container')) {
-                $instance->set_container($container);
-            }
+            // if ($rc->hasMethod('set_container')) {
+            //     $instance->set_container($container);
+            // }
 
             self::setCacheFor($class, $instance);
 
@@ -39,13 +45,20 @@ class ReflectionFactory
 
     public static function getCacheFor($class)
     {
-        return self::$instance_cache[$class];
+        return self::$instance_cache[$class] ?? null;
     }
 
     public static function setCacheFor($class, $instance)
     {
         self::$instance_cache[$class] = $instance;
     }
+
+    public static function hasPrivateContructor($class_name): bool
+    {
+        $rc = new \ReflectionClass($class_name);
+        return !is_null($constructor = $rc->getConstructor()) && $constructor->isPrivate();
+    }
+
 
     private static function makeWithContructorArgs(
         \ReflectionClass $rc,

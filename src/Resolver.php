@@ -17,7 +17,6 @@ class Resolver
         if ($this->isResolved($class_name)) {
             return $this->resolved($class_name);
         }
-
         // not fully namespaced, lets cascade
         foreach ($this->namespace_cascade as $ns) {
             if (class_exists($fully_namespaced = $ns . $class_name)) {

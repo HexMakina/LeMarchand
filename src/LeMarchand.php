@@ -36,6 +36,7 @@ class LeMarchand implements ContainerInterface
             $this->interface_wiring = $settings[__CLASS__]['wiring'] ?? [];
             unset($settings[__CLASS__]);
         }
+
         $this->configurations['settings'] = $settings;
     }
 
@@ -53,18 +54,22 @@ class LeMarchand implements ContainerInterface
         return $dbg;
     }
 
+    public function resolver() : Resolver
+    {
+      return $this->resolver;
+    }
+
     public function has($configuration)
     {
-        $ret = false;
-
         try {
             $this->get($configuration);
-            $ret = true;
+            return true;
         } catch (NotFoundExceptionInterface $e) {
+            return false;
         } catch (ContainerExceptionInterface $e) {
+            return false;
         }
-
-        return $ret;
+        return false;
     }
 
 
@@ -74,130 +79,22 @@ class LeMarchand implements ContainerInterface
             throw new ContainerException($configuration_string);
         }
 
-        if ($this->isFirstLevelKey($configuration_string)) {
+        if (isset($this->configurations[$configuration_string])) {
             return $this->configurations[$configuration_string];
         }
 
-        // not a simple configuration string, it has meaning
-        $res = $this->getComplexConfigurationString($configuration_string);
 
-        if (is_null($res)) {
+        // not a simple configuration string, it has meaning
+        $configuration = new Configuration($configuration_string, $this);
+
+        $res = $configuration->probeSettings($this->configurations)
+            ?? $configuration->probeClasses()
+            ?? $configuration->probeInterface($this->interface_wiring)
+            ?? $configuration->probeCascade();
+
+        if(is_null($res))
             throw new NotFoundException($configuration_string);
-        }
 
         return $res;
-    }
-
-    public function resolver()
-    {
-        return $this->resolver;
-    }
-
-    private function getComplexConfigurationString($configuration_string)
-    {
-        $configuration = new Configuration($configuration_string);
-
-        $ret = null;
-
-        if ($configuration->isSettings()) {
-            $ret = $this->getSettings($configuration);
-        } elseif (class_exists($configuration_string)) {
-            $ret = $this->getInstance($configuration_string);
-        } elseif ($configuration->isInterface()) {
-            $ret = $this->wireInstance($configuration);
-        } elseif ($configuration->isModelOrController()) {
-            $ret = $this->cascadeInstance($configuration);
-        }
-
-        return $ret;
-    }
-
-    private function isFirstLevelKey($configuration_string)
-    {
-        return isset($this->configurations[$configuration_string]);
-    }
-
-    private function getSettings($setting)
-    {
-        // vd(__FUNCTION__);
-        $ret = $this->configurations;
-
-      //dot based hierarchy, parse and climb
-        foreach (explode('.', $setting) as $k) {
-            if (!isset($ret[$k])) {
-                throw new NotFoundException($setting);
-            }
-            $ret = $ret[$k];
-        }
-
-        return $ret;
-    }
-
-    private function cascadeInstance(Configuration $configuration)
-    {
-        $class_name = $configuration->getModelOrControllerName();
-        $class_name = $this->resolver->cascadeNamespace($class_name);
-
-        if ($configuration->hasClassNameModifier()) {
-            $ret = $class_name;
-        } elseif ($configuration->hasNewInstanceModifier()) {
-            $ret = $this->makeInstance($class_name);
-        } else {
-            $ret = $this->getInstance($class_name);
-        }
-
-        return $ret;
-    }
-
-    private function wireInstance(Configuration $configuration)
-    {
-        $interface = $configuration->configurationString();
-
-        if (!isset($this->interface_wiring[$interface])) {
-            throw new NotFoundException($interface);
-        }
-
-        $wire = $this->interface_wiring[$interface];
-
-        // interface + constructor params
-        if ($this->hasEmbeddedConstructorParameters($wire)) {
-            $class = array_shift($wire);
-            $args = $wire;
-        } else {
-            $class = $wire;
-            $args = null;
-        }
-
-        if ($this->resolver->isResolved($class) && $this->hasPrivateContructor($class)) {
-            return $this->resolver->resolved($class);
-        }
-
-        return $this->getInstance($class, $args);
-    }
-
-    private function hasPrivateContructor($class_name): bool
-    {
-        $rc = new \ReflectionClass($class_name);
-        return !is_null($constructor = $rc->getConstructor()) && $constructor->isPrivate();
-    }
-
-    private function hasEmbeddedConstructorParameters($wire)
-    {
-        return is_array($wire);
-    }
-
-    private function getInstance($class, $construction_args = [])
-    {
-        if (ReflectionFactory::hasCacheFor($class)) {
-            return ReflectionFactory::getCacheFor($class);
-        }
-
-        return $this->makeInstance($class, $construction_args);
-    }
-
-    private function makeInstance($class, $construction_args = [])
-    {
-        $instance = ReflectionFactory::make($class, $construction_args, $this);
-        return $instance;
     }
 }
