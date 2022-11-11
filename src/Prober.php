@@ -38,7 +38,6 @@ class Prober
   {
       if (!$this->configuration->isInterface())
           return null;
-      vd($this->configuration->id());
 
       if (!isset($wires[$this->configuration->id()])) {
           throw new NotFoundException($this->configuration->id());
@@ -55,6 +54,7 @@ class Prober
           $class = $wire;
           $args = null;
       }
+
 
       if ($this->configuration->container()->resolver()->isResolved($class) && ReflectionFactory::hasPrivateContructor($class)) {
           return $this->configuration->container()->resolver()->resolved($class);
