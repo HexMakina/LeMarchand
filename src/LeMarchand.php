@@ -16,6 +16,8 @@ class LeMarchand implements ContainerInterface
 
     private $resolver = null;
 
+    private Prober $solver = null;
+
     public static function box($settings = null): ContainerInterface
     {
         if (is_null(self::$instance)) {
@@ -28,11 +30,10 @@ class LeMarchand implements ContainerInterface
         return self::$instance;
     }
 
-
     private function __construct($settings)
     {
         if (isset($settings[__CLASS__])) {
-            $this->resolver = new Resolver($settings[__CLASS__]['cascade'] ?? []);
+            $this->resolver = new Cascader($settings[__CLASS__]['cascade'] ?? []);
             $this->interface_wiring = $settings[__CLASS__]['wiring'] ?? [];
             unset($settings[__CLASS__]);
         }
@@ -52,11 +53,6 @@ class LeMarchand implements ContainerInterface
         }
 
         return $dbg;
-    }
-
-    public function resolver(): Resolver
-    {
-        return $this->resolver;
     }
 
     public function has($id)
@@ -85,7 +81,7 @@ class LeMarchand implements ContainerInterface
 
         // not a simple configuration string, it has meaning
         $configuration = new Configuration($id, $this);
-        $prober = new Prober($configuration);
+        $prober = new Prober($configuration, $this->resolver);
 
         $res = $prober->probeSettings($this->configurations)
             ?? $prober->probeClasses()
