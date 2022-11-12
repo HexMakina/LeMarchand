@@ -38,7 +38,7 @@ class Factory
 
           $instance = null;
 
-          if(is_null($construction_args) || is_null($constructor))
+          if(is_null($constructor))
               $instance = $reflection->newInstanceArgs();
           else{
 
