@@ -6,21 +6,23 @@ use Psr\Container\ContainerInterface;
 
 class Prober
 {
+    private static array $cascade_cache = [];
+
     private ContainerInterface $container;
     private Configuration $configuration;
-    private Cascader $cascader;
     private Factory $factory;
+    private array $cascade;
 
-    public function __construct(Configuration $conf, Cascader $cas)
+    public function __construct(Configuration $conf, array $cascade=[])
     {
         $this->configuration = $conf;
-        $this->cascader = $cas;
+        $this->cascade = $cascade;
 
         $this->container = $this->configuration->container();
         $this->factory = new Factory($this->container);
     }
 
-    public function probeSettings($settings)
+    public function probeSettings(array $settings): ?object
     {
         if (!$this->configuration->isSettings()) {
             return null;
@@ -37,14 +39,14 @@ class Prober
         return $settings;
     }
 
-    public function probeClasses($construction_args = [])
+    public function probeClasses(array $construction_args = []): ?object
     {
         return $this->configuration->isExistingClass()
           ? $this->factory->serve($this->configuration->id(), $construction_args)
           : null;
     }
 
-    public function probeInterface($wires)
+    public function probeInterface(array $wires): ?object
     {
         if (!$this->configuration->isInterface()) {
             return null;
@@ -69,7 +71,7 @@ class Prober
         return $this->factory->serve($class, $args);
     }
 
-    public function probeCascade()
+    public function probeCascade(): ?object
     {
         $class_name = $this->configuration->rxModelOrController();
 
@@ -77,7 +79,7 @@ class Prober
             return null;
         }
 
-        $class_name = $this->cascader->cascadeNamespace($class_name);
+        $class_name = $this->cascadeNamespace($class_name);
 
         if ($this->configuration->hasClassNameModifier()) {
             $ret = $class_name;
@@ -88,5 +90,25 @@ class Prober
         }
 
         return $ret;
+    }
+
+
+    private function cascadeNamespace(string $class_name) : string
+    {
+        if (isset($this::$cascade_cache[$class_name])) {
+            return $this::$cascade_cache[$class_name];
+        }
+
+        // not fully namespaced, lets cascade
+        foreach ($this->cascade as $ns) {
+            if (class_exists($fully_namespaced = $ns . $class_name)) {
+
+                $this::$cascade_cache[$class_name] = $fully_namespaced;
+
+                return $fully_namespaced;
+            }
+        }
+
+        throw new NotFoundException($class_name);
     }
 }

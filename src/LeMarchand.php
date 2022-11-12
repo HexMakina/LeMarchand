@@ -14,9 +14,7 @@ class LeMarchand implements ContainerInterface
 
     private $interface_wiring = [];
 
-    private $resolver = null;
-
-    private Prober $solver = null;
+    private $namespace_cascade = [];
 
     public static function box($settings = null): ContainerInterface
     {
@@ -33,7 +31,7 @@ class LeMarchand implements ContainerInterface
     private function __construct($settings)
     {
         if (isset($settings[__CLASS__])) {
-            $this->resolver = new Cascader($settings[__CLASS__]['cascade'] ?? []);
+            $this->namespace_cascade = $settings[__CLASS__]['cascade'] ?? [];
             $this->interface_wiring = $settings[__CLASS__]['wiring'] ?? [];
             unset($settings[__CLASS__]);
         }
@@ -60,11 +58,12 @@ class LeMarchand implements ContainerInterface
         try {
             $this->get($id);
             return true;
-        } catch (NotFoundExceptionInterface $e) {
-            return false;
-        } catch (ContainerExceptionInterface $e) {
-            return false;
         }
+        catch (NotFoundExceptionInterface $e) {
+        }
+        catch (ContainerExceptionInterface $e) {
+        }
+        
         return false;
     }
 
@@ -81,7 +80,7 @@ class LeMarchand implements ContainerInterface
 
         // not a simple configuration string, it has meaning
         $configuration = new Configuration($id, $this);
-        $prober = new Prober($configuration, $this->resolver);
+        $prober = new Prober($configuration, $this->namespace_cascade);
 
         $res = $prober->probeSettings($this->configurations)
             ?? $prober->probeClasses()
