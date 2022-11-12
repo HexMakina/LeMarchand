@@ -22,7 +22,7 @@ class Prober
         $this->factory = new Factory($this->container);
     }
 
-    public function probeSettings(array $settings): ?object
+    public function probeSettings(array $settings)
     {
         if (!$this->configuration->isSettings()) {
             return null;
@@ -71,7 +71,7 @@ class Prober
         return $this->factory->serve($class, $args);
     }
 
-    public function probeCascade(): ?object
+    public function probeCascade()
     {
         $class_name = $this->configuration->rxModelOrController();
 
