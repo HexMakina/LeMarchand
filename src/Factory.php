@@ -10,14 +10,14 @@ class Factory
 
     private $container = null;
 
-    public function __contruct(ContainerInterface $container)
+    public function __construct(ContainerInterface $container)
     {
-      $this->container = $container;
+        $this->container = $container;
     }
 
     public function serve($class, $construction_args = null)
     {
-        return $this->stock($class);
+        return $this->stock($class)
             ?? $this->build($class, $construction_args)
             ?? null;
     }
