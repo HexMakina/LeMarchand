@@ -64,7 +64,9 @@ class Factory
     private function getConstructorParameters(\ReflectionMethod $constructor)
     {
         $ret = [];
+
         foreach ($constructor->getParameters() as $param) {
+
             $id = $param->getType()
                   ? $param->getType()->getName()
                   : 'settings.Constructor.' . $constructor->class . '.' . $param->getName();
