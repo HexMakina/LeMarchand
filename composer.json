@@ -23,8 +23,5 @@
         "psr-4": {
             "HexMakina\\LeMarchand\\": "/src"
         }
-    },
-    "require-dev": {
-        "phpstan/phpstan": "1.8.x-dev"
     }
 }
