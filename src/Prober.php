@@ -13,7 +13,7 @@ class Prober
     private Factory $factory;
     private array $cascade;
 
-    public function __construct(Configuration $conf, array $cascade=[])
+    public function __construct(Configuration $conf, array $cascade = [])
     {
         $this->configuration = $conf;
         $this->cascade = $cascade;
@@ -93,7 +93,7 @@ class Prober
     }
 
 
-    private function cascadeNamespace(string $class_name) : string
+    private function cascadeNamespace(string $class_name): string
     {
         if (isset($this::$cascade_cache[$class_name])) {
             return $this::$cascade_cache[$class_name];
@@ -102,7 +102,6 @@ class Prober
         // not fully namespaced, lets cascade
         foreach ($this->cascade as $ns) {
             if (class_exists($fully_namespaced = $ns . $class_name)) {
-
                 $this::$cascade_cache[$class_name] = $fully_namespaced;
 
                 return $fully_namespaced;

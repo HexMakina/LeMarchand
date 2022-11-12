@@ -58,12 +58,12 @@ class LeMarchand implements ContainerInterface
         try {
             $this->get($id);
             return true;
+        } catch (NotFoundExceptionInterface $e) {
+          // return false;
+        } catch (ContainerExceptionInterface $e) {
+          // return false;
         }
-        catch (NotFoundExceptionInterface $e) {
-        }
-        catch (ContainerExceptionInterface $e) {
-        }
-        
+
         return false;
     }
 

@@ -24,40 +24,39 @@ class Factory
 
     public function stock($class, $instance = null)
     {
-        if(!is_null($instance))
-          self::$instance_cache[$class] = $instance;
+        if (!is_null($instance)) {
+            self::$instance_cache[$class] = $instance;
+        }
 
         return self::$instance_cache[$class] ?? null;
     }
 
     public function build($class, $construction_args = null)
     {
-      try {
-          $reflection = new \ReflectionClass($class);
-          $constructor = $reflection->getConstructor();
+        try {
+            $reflection = new \ReflectionClass($class);
+            $constructor = $reflection->getConstructor();
 
-          $instance = null;
+            $instance = null;
 
-          if(is_null($constructor))
-              $instance = $reflection->newInstanceArgs();
-          else{
+            if (is_null($constructor)) {
+                $instance = $reflection->newInstanceArgs();
+            } else {
+                if (empty($construction_args)) {
+                    $construction_args = $this->getConstructorParameters($constructor);
+                }
 
-              if (empty($construction_args)) {
-                  $construction_args = $this->getConstructorParameters($constructor);
-              }
-
-              $instance = $constructor->isPrivate()
+                $instance = $constructor->isPrivate()
                         ? $this->buildSingleton($reflection, $construction_args)
                         : $reflection->newInstanceArgs($construction_args);
-          }
+            }
 
-          $this->stock($class, $instance);
+            $this->stock($class, $instance);
 
-          return $instance;
-
-      } catch (\ReflectionException $e) {
-          throw new ContainerException($e->getMessage());
-      }
+            return $instance;
+        } catch (\ReflectionException $e) {
+            throw new ContainerException($e->getMessage());
+        }
     }
 
 
@@ -66,13 +65,11 @@ class Factory
         $ret = [];
 
         foreach ($constructor->getParameters() as $param) {
-
             $id = $param->getType()
                   ? $param->getType()->getName()
                   : 'settings.Constructor.' . $constructor->class . '.' . $param->getName();
 
-            $ret []= $this->container->get($id);
-
+            $ret [] = $this->container->get($id);
         }
         return $ret;
     }
@@ -80,14 +77,14 @@ class Factory
     private function buildSingleton(\ReflectionClass $rc, $construction_args)
     {
       // first argument is the instantiation method
-      $singleton_method = $rc->getMethod(array_shift($construction_args));
+        $singleton_method = $rc->getMethod(array_shift($construction_args));
 
       // second are the invocation args
-      $construction_args = array_shift($construction_args);
+        $construction_args = array_shift($construction_args);
 
       // invoke the method with args
-      $singleton = $singleton_method->invoke(null, $construction_args);
+        $singleton = $singleton_method->invoke(null, $construction_args);
 
-      return $singleton;
+        return $singleton;
     }
 }
