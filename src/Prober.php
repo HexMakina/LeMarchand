@@ -2,15 +2,22 @@
 
 namespace HexMakina\LeMarchand;
 
+use Psr\Container\ContainerInterface;
+
 class Prober
 {
+    private ContainerInterface $container;
     private Configuration $configuration;
-    private Cascader $resolver;
+    private Cascader $cascader;
+    private Factory $factory;
 
-    public function __construct(Configuration $c, Cascader $r)
+    public function __construct(Configuration $conf, Cascader $cas)
     {
-        $this->configuration = $c;
-        $this->resolver = $r;
+        $this->configuration = $conf;
+        $this->cascader = $cas;
+
+        $this->container = $this->configuration->container();
+        $this->factory = new Factory($this->container);
     }
 
     public function probeSettings($settings)
@@ -33,7 +40,7 @@ class Prober
     public function probeClasses($construction_args = [])
     {
         return $this->configuration->isExistingClass()
-          ? ReflectionFactory::get($this->configuration->id(), $construction_args, $this->configuration->container(), $this->resolver)
+          ? $this->factory->serve($this->configuration->id(), $construction_args)
           : null;
     }
 
@@ -59,15 +66,7 @@ class Prober
             $args = null;
         }
 
-
-        if (
-            $this->resolver->isResolved($class)
-            && ReflectionFactory::hasPrivateContructor($class)
-        ) {
-            return $this->resolver->resolved($class);
-        }
-
-        return ReflectionFactory::get($class, $args, $this->configuration->container(), $this->resolver);
+        return $this->factory->serve($class, $args);
     }
 
     public function probeCascade()
@@ -78,14 +77,14 @@ class Prober
             return null;
         }
 
-        $class_name = $this->resolver->cascadeNamespace($class_name);
+        $class_name = $this->cascader->cascadeNamespace($class_name);
 
         if ($this->configuration->hasClassNameModifier()) {
             $ret = $class_name;
         } elseif ($this->configuration->hasNewInstanceModifier()) {
-            $ret = ReflectionFactory::make($class_name, [], $this->configuration->container(), $this->resolver);
+            $ret = $this->factory->build($class_name, []);
         } else {
-            $ret = ReflectionFactory::get($class_name, [], $this->configuration->container(), $this->resolver);
+            $ret = $this->factory->serve($class_name, []);
         }
 
         return $ret;
