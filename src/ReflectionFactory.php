@@ -8,20 +8,20 @@ class ReflectionFactory
 {
     private static $instance_cache = [];
 
-    public static function get($class, $construction_args, ContainerInterface $container)
+    public static function get($class, $construction_args, ContainerInterface $container, Cascader $resolver)
     {
         return ReflectionFactory::getCacheFor($class)
-            ?? ReflectionFactory::make($class, $construction_args, $container) ?? null;
+            ?? ReflectionFactory::make($class, $construction_args, $container, $resolver) ?? null;
     }
 
-    public static function make($class, $construction_args, ContainerInterface $container)
+    public static function make($class, $construction_args, ContainerInterface $container, Cascader $resolver)
     {
         try {
             $rc = new \ReflectionClass($class);
             $instance = null;
 
             if (!is_null($constructor = $rc->getConstructor())) {
-                $instance = self::makeWithContructorArgs($rc, $construction_args, $container);
+                $instance = self::makeWithContructorArgs($rc, $construction_args, $container, $resolver);
             } else {
                 $instance = $rc->newInstanceArgs();
             }
@@ -38,20 +38,6 @@ class ReflectionFactory
         }
     }
 
-    public static function hasCacheFor($class)
-    {
-        return isset(self::$instance_cache[$class]);
-    }
-
-    public static function getCacheFor($class)
-    {
-        return self::$instance_cache[$class] ?? null;
-    }
-
-    public static function setCacheFor($class, $instance)
-    {
-        self::$instance_cache[$class] = $instance;
-    }
 
     public static function hasPrivateContructor($class_name): bool
     {
@@ -60,10 +46,21 @@ class ReflectionFactory
     }
 
 
+    private static function getCacheFor($class)
+    {
+        return self::$instance_cache[$class] ?? null;
+    }
+
+    private static function setCacheFor($class, $instance)
+    {
+        self::$instance_cache[$class] = $instance;
+    }
+
     private static function makeWithContructorArgs(
         \ReflectionClass $rc,
         $construction_args,
-        ContainerInterface $container
+        ContainerInterface $container,
+        Cascader $r
     ) {
         $constructor = $rc->getConstructor();
 
@@ -77,7 +74,7 @@ class ReflectionFactory
             $singleton_method = $rc->getMethod(array_shift($construction_args));
             $construction_args = array_shift($construction_args);
             // invoke the method with remaining constructor args
-            $instance = $container->resolver()->resolved(
+            $instance = $r->resolved(
                 $rc->getName(),
                 $singleton_method->invoke(null, $construction_args)
             );
@@ -90,15 +87,15 @@ class ReflectionFactory
 
     private static function getConstructorParameters(\ReflectionMethod $constructor, ContainerInterface $container)
     {
-        $construction_args = [];
+        $ret = [];
         foreach ($constructor->getParameters() as $param) {
-            if ($param->getType()) {
-                $construction_args [] = $container->get($param->getType()->getName());
-            } else {
-                $setting = 'settings.Constructor.' . $constructor->class . '.' . $param->getName();
-                $construction_args [] = $container->get($setting);
-            }
+            $id = $param->getType()
+                  ? $param->getType()->getName()
+                  : 'settings.Constructor.' . $constructor->class . '.' . $param->getName();
+
+            $ret []= $container->get($id);
+
         }
-        return $construction_args;
+        return $ret;
     }
 }

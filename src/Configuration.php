@@ -39,11 +39,6 @@ class Configuration
         return $this->box;
     }
 
-    public function resolver(): Resolver
-    {
-        return $this->box->resolver();
-    }
-
     public function isSettings(): bool
     {
         return preg_match(self::RX_SETTINGS, $this->lament) === 1;

@@ -5,10 +5,12 @@ namespace HexMakina\LeMarchand;
 class Prober
 {
     private Configuration $configuration;
+    private Cascader $resolver;
 
-    public function __construct(Configuration $c)
+    public function __construct(Configuration $c, Cascader $r)
     {
         $this->configuration = $c;
+        $this->resolver = $r;
     }
 
     public function probeSettings($settings)
@@ -31,7 +33,7 @@ class Prober
     public function probeClasses($construction_args = [])
     {
         return $this->configuration->isExistingClass()
-          ? ReflectionFactory::get($this->configuration->id(), $construction_args, $this->configuration->container())
+          ? ReflectionFactory::get($this->configuration->id(), $construction_args, $this->configuration->container(), $this->resolver)
           : null;
     }
 
@@ -59,13 +61,13 @@ class Prober
 
 
         if (
-            $this->configuration->container()->resolver()->isResolved($class)
+            $this->resolver->isResolved($class)
             && ReflectionFactory::hasPrivateContructor($class)
         ) {
-            return $this->configuration->container()->resolver()->resolved($class);
+            return $this->resolver->resolved($class);
         }
 
-        return ReflectionFactory::get($class, $args, $this->configuration->container());
+        return ReflectionFactory::get($class, $args, $this->configuration->container(), $this->resolver);
     }
 
     public function probeCascade()
@@ -76,14 +78,14 @@ class Prober
             return null;
         }
 
-        $class_name = $this->configuration->container()->resolver()->cascadeNamespace($class_name);
+        $class_name = $this->resolver->cascadeNamespace($class_name);
 
         if ($this->configuration->hasClassNameModifier()) {
             $ret = $class_name;
         } elseif ($this->configuration->hasNewInstanceModifier()) {
-            $ret = ReflectionFactory::make($class_name, [], $this->configuration->container());
+            $ret = ReflectionFactory::make($class_name, [], $this->configuration->container(), $this->resolver);
         } else {
-            $ret = ReflectionFactory::get($class_name, [], $this->configuration->container());
+            $ret = ReflectionFactory::get($class_name, [], $this->configuration->container(), $this->resolver);
         }
 
         return $ret;

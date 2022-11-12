@@ -2,7 +2,7 @@
 
 namespace HexMakina\LeMarchand;
 
-class Resolver
+class Cascader
 {
     private $namespace_cascade = [];
     private $resolved_cache = [];
