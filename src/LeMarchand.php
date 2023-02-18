@@ -1,5 +1,4 @@
-<?php
-
+<?php 
 namespace HexMakina\LeMarchand;
 
 use Psr\Container\ContainerInterface;
@@ -10,12 +9,21 @@ class LeMarchand implements ContainerInterface
 {
     private static $instance = null;
 
-    private $configurations = [];
+    private $configurations = []; // An array for the configurations 
 
-    private $interface_wiring = [];
+    private $interface_wiring = []; // An array for the wiring of the interface 
 
-    private $namespace_cascade = [];
+    private $namespace_cascade = []; // An array for the namespace  cascade 
 
+    /**
+     * Get a container instance  
+     * 
+     * @param array|null $settings // The container settings
+     * 
+     * @return ContainerInterface
+     * 
+     * @throws ContainerException
+     */ 
     public static function box($settings = null): ContainerInterface
     {
         if (is_null(self::$instance)) {
@@ -28,6 +36,11 @@ class LeMarchand implements ContainerInterface
         return self::$instance;
     }
 
+    /**
+     * Construct a new instance of LeMarchand 
+     * 
+     * @param array $settings // The settings of LeMarchand
+     */
     private function __construct($settings)
     {
         if (isset($settings[__CLASS__])) {
@@ -39,6 +52,11 @@ class LeMarchand implements ContainerInterface
         $this->configurations['settings'] = $settings;
     }
 
+    /**
+     * Return information about the instance
+     * 
+     * @return array
+     */
     public function __debugInfo(): array
     {
         $dbg = get_object_vars($this);
@@ -53,6 +71,13 @@ class LeMarchand implements ContainerInterface
         return $dbg;
     }
 
+    /**
+     * Check if an item is set in the container
+     * 
+     * @param string $id // The ID of the item 
+     * 
+     * @return bool
+     */ 
     public function has($id)
     {
         try {
@@ -67,7 +92,16 @@ class LeMarchand implements ContainerInterface
         return false;
     }
 
-
+    /**
+     * Get an item from the container
+     *
+     * @param string $id // The ID of the item 
+     * 
+     * @return mixed
+     * 
+     * @throws NotFoundExceptionInterface If the item is not found
+     * @throws ContainerExceptionInterface If there is a problem with getting the item
+     */
     public function get($id)
     {
         if (!is_string($id)) {
