@@ -4,7 +4,7 @@ namespace HexMakina\LeMarchand;
 
 use Psr\Container\ContainerInterface;
 
-class Prober
+class Solver
 {
     private static array $cascade_cache = [];
 

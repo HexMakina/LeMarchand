@@ -102,29 +102,35 @@ class LeMarchand implements ContainerInterface
      * @throws NotFoundExceptionInterface If the item is not found
      * @throws ContainerExceptionInterface If there is a problem with getting the item
      */
+    // This method gets an item from the container based on its ID
     public function get($id)
     {
+        // Check if the ID is a string, if not, throw an exception
         if (!is_string($id)) {
             throw new ContainerException($id);
         }
 
+        // Check if the ID is a simple configuration string, if so, return the configuration
         if (isset($this->configurations[$id])) {
             return $this->configurations[$id];
         }
 
-        // not a simple configuration string, it has meaning
+        // If the ID is not a simple configuration string, create a new Configuration object and a new Prober object
         $configuration = new Configuration($id, $this);
-        $prober = new Prober($configuration, $this->namespace_cascade);
+        $prober = new Solver($configuration, $this->namespace_cascade);
 
+        // Try to get the item from the container by probing the settings, classes, interface wiring, and namespace cascade
         $res = $prober->probeSettings($this->configurations)
             ?? $prober->probeClasses()
             ?? $prober->probeInterface($this->interface_wiring)
             ?? $prober->probeCascade();
 
+        // If the item is not found, throw a NotFoundException
         if (is_null($res)) {
             throw new NotFoundException($id);
         }
 
+        // Return the item
         return $res;
     }
 }
