@@ -9,11 +9,7 @@ class LeMarchand implements ContainerInterface
 {
     private static $instance = null;
 
-    private $configurations = []; // An array for the configurations 
-
-    private $interface_wiring = []; // An array for the wiring of the interface 
-
-    private $namespace_cascade = []; // An array for the namespace  cascade 
+    private array $configurations; 
 
     /**
      * Get a container instance  
@@ -43,12 +39,10 @@ class LeMarchand implements ContainerInterface
      */
     private function __construct($settings)
     {
-        if (isset($settings[__CLASS__])) {
-            $this->namespace_cascade = $settings[__CLASS__]['cascade'] ?? [];
-            $this->interface_wiring = $settings[__CLASS__]['wiring'] ?? [];
-            unset($settings[__CLASS__]);
-        }
-
+        $this->configurations = $settings[__CLASS__] ?? [];
+        
+        unset($settings[__CLASS__]);
+        
         $this->configurations['settings'] = $settings;
     }
 
@@ -61,11 +55,11 @@ class LeMarchand implements ContainerInterface
     {
         $dbg = get_object_vars($this);
 
-        foreach ($dbg['interface_wiring'] as $interface => $wire) {
+        foreach ($dbg['configurations']['wiring'] as $interface => $wire) {
             if (is_array($wire)) {
                 $wire = array_shift($wire) . ' --array #' . count($wire);
             }
-            $dbg['interface_wiring'][$interface] = $wire;
+            $dbg['configurations']['wiring'] = $wire;
         }
 
         return $dbg;
@@ -106,7 +100,7 @@ class LeMarchand implements ContainerInterface
     public function get($id)
     {
         // Check if the ID is a string, if not, throw an exception
-        if (!is_string($id)) {
+        if (!is_string($id) || empty($id)) {
             throw new ContainerException($id);
         }
 
@@ -115,15 +109,17 @@ class LeMarchand implements ContainerInterface
             return $this->configurations[$id];
         }
 
-        // If the ID is not a simple configuration string, create a new Configuration object and a new Prober object
-        $configuration = new Configuration($id, $this);
-        $prober = new Solver($configuration, $this->namespace_cascade);
+        
+        $victim = new Solver($this);
+        $res = $victim->solve($id);
 
-        // Try to get the item from the container by probing the settings, classes, interface wiring, and namespace cascade
-        $res = $prober->probeSettings($this->configurations)
-            ?? $prober->probeClasses()
-            ?? $prober->probeInterface($this->interface_wiring)
-            ?? $prober->probeCascade();
+        // $prober = new Solver($configuration, $this->configurations['cascade'] ?? []);
+
+        // // Try to get the item from the container by probing the settings, classes, interface wiring, and namespace cascade
+        // $res = $prober->probeSettings($this->configurations)
+        //     ?? $prober->probeClasses()
+        //     ?? $prober->probeInterface($this->interface_wiring)
+        //     ?? $prober->probeCascade();
 
         // If the item is not found, throw a NotFoundException
         if (is_null($res)) {

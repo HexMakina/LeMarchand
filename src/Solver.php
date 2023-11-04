@@ -6,57 +6,83 @@ use Psr\Container\ContainerInterface;
 
 class Solver
 {
+    public const RX_SETTINGS = '/^settings\./';
+
+    public const RX_INTERFACE = '/([a-zA-Z]+)Interface$/';
+
+    public const RX_MVC = '/(Models|Controllers)\\\([a-zA-Z\\\]+)(::class|::new)?$/';
+
     private static array $cascade_cache = [];
 
     private ContainerInterface $container;
-    private Configuration $configuration;
     private Factory $factory;
-    private array $cascade;
 
-    public function __construct(Configuration $conf, array $cascade = [])
+
+    public function __construct(ContainerInterface $c)
     {
-        $this->configuration = $conf;
-        $this->cascade = $cascade;
-
-        $this->container = $this->configuration->container();
+        $this->container = $c;
         $this->factory = new Factory($this->container);
     }
 
-    public function probeSettings(array $settings)
+
+
+    public function solve(string $lamentation)
     {
-        if (!$this->configuration->isSettings()) {
+        return $this->probeSettings ($lamentation)
+            ?? $this->probeClasses  ($lamentation)
+            ?? $this->probeInterface($lamentation)
+            ?? $this->probeCascade  ($lamentation);
+    }
+
+    //dot based hierarchy, parse and climb
+    public function probeSettings(string $lamentation)
+    {
+        if (!self::isSettings($lamentation)) {
             return null;
         }
 
-        //dot based hierarchy, parse and climb
-        foreach (explode('.', $this->configuration->id()) as $k) {
-            if (!isset($settings[$k])) {
-                throw new NotFoundException($this->configuration->id());
+        $settings = $this->container->get('settings') ?? [];
+
+        $path = explode('.', $lamentation);
+        array_shift($path); // remove 'settings' from the path
+        $walked = [];
+        foreach ($path as $k) {
+            
+            $walked []= $k;
+            
+            if (isset($settings[$k])) {
+                $settings = $settings[$k];
+                continue;
             }
-            $settings = $settings[$k];
+
+            // we didn't continue; we failed
+            $walked = 'settings.' . implode('.', $walked);
+            throw new NotFoundException(__FUNCTION__."($lamentation) failed at $walked");
         }
 
         return $settings;
     }
 
-    public function probeClasses(array $construction_args = []): ?object
+    public function probeClasses(string $className, array $construction_args = []): ?object
     {
-        return $this->configuration->isExistingClass()
-          ? $this->factory->serve($this->configuration->id(), $construction_args)
-          : null;
+        if(class_exists($className))
+            return $this->factory->serve($className, $construction_args);
+
+        return null;
     }
 
-    public function probeInterface(array $wires): ?object
+    public function probeInterface(string $lamentation): ?object
     {
-        if (!$this->configuration->isInterface()) {
+        if (!self::isInterface($lamentation)) {
             return null;
         }
 
-        if (!isset($wires[$this->configuration->id()])) {
-            throw new NotFoundException($this->configuration->id());
-        }
+        $wires = $this->container->get('wiring') ?? [];
 
-        $wire = $wires[$this->configuration->id()];
+        if (!isset($wires[$lamentation]))
+            throw new NotFoundException(__FUNCTION__."($lamentation) is not wired to a class");
+
+        $wire = $wires[$lamentation];
 
         // interface + constructor params
 
@@ -71,19 +97,24 @@ class Solver
         return $this->factory->serve($class, $args);
     }
 
-    public function probeCascade()
+    public function probeCascade(string $lamentation)
     {
-        $class_name = $this->configuration->rxModelOrController();
+        $ret = null;
 
-        if (is_null($class_name)) {
+        $m = [];
+        if (preg_match(self::RX_MVC, $lamentation, $m) !== 1) {
             return null;
         }
+        
+        $class_name = $m[1] . '\\' . $m[2];
 
         $class_name = $this->cascadeNamespace($class_name);
 
-        if ($this->configuration->hasClassNameModifier()) {
+        if(is_null($class_name))
+            $ret = null;
+        elseif (self::hasClassNameModifier($lamentation)) {
             $ret = $class_name;
-        } elseif ($this->configuration->hasNewInstanceModifier()) {
+        } elseif (self::hasNewInstanceModifier($lamentation)) {
             $ret = $this->factory->build($class_name, []);
         } else {
             $ret = $this->factory->serve($class_name, []);
@@ -92,25 +123,48 @@ class Solver
         return $ret;
     }
 
-
-    private function cascadeNamespace(string $class_name): string
+    private function cascadeNamespace(string $class_name): ?string
     {
-        if (isset($this::$cascade_cache[$class_name])) {
-            return $this::$cascade_cache[$class_name];
+        // is it cached ?
+        if (isset(self::$cascade_cache[$class_name])) {
+            return self::$cascade_cache[$class_name];
         }
 
-        // not fully namespaced, lets cascade
-        foreach ($this->cascade as $ns) {
+        // no cache lets cascade
+        $cascade = $this->container->get('cascade') ?? [];
 
-            $fully_namespaced = $ns . $class_name;
+        foreach ($cascade as $namespace) {
+
+            $fully_namespaced = $namespace . $class_name;
             
             if (class_exists($fully_namespaced)) {
-                $this::$cascade_cache[$class_name] = $fully_namespaced;
+
+                self::$cascade_cache[$class_name] = $fully_namespaced;
 
                 return $fully_namespaced;
             }
         }
 
-        throw new NotFoundException($class_name);
+        return null;
+    }
+
+    private static function isSettings($lamentation): bool
+    {
+        return preg_match(self::RX_SETTINGS, $lamentation) === 1;
+    }
+
+    private static function isInterface($lamentation): bool
+    {
+        return preg_match(self::RX_INTERFACE, $lamentation) === 1;
+    }
+
+    private static function hasClassNameModifier($lamentation)
+    {
+        return strpos($lamentation, '::class') !== false;
+    }
+
+    private static function hasNewInstanceModifier($lamentation)
+    {
+        return strpos($lamentation, '::new') !== false;
     }
 }
