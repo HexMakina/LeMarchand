@@ -101,7 +101,10 @@ class Prober
 
         // not fully namespaced, lets cascade
         foreach ($this->cascade as $ns) {
-            if (class_exists($fully_namespaced = $ns . $class_name)) {
+
+            $fully_namespaced = $ns . $class_name;
+            
+            if (class_exists($fully_namespaced)) {
                 $this::$cascade_cache[$class_name] = $fully_namespaced;
 
                 return $fully_namespaced;
