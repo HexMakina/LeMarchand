@@ -47,7 +47,7 @@ $box->get('settings.app.name'); // returns KORAL
 ## Register additionnal services
 ```
 $box=new LeMarchand($settings);
-$box->register('HexMakina\Crudites\DatabaseInterface', $database);
+$box->register('HexMakina\Crudites\ConnectionInterface', $connection);
 
 ```
 
