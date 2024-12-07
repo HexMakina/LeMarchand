@@ -37,7 +37,7 @@ class LeMarchand implements ContainerInterface
      * 
      * @param array $settings // The settings of LeMarchand
      */
-    private function __construct($settings)
+    public function __construct($settings)
     {
         $this->configurations = $settings[__CLASS__] ?? [];
         
