@@ -1,21 +1,23 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-use Psr\Container\ContainerInterface;
+
 use HexMakina\LeMarchand\Solver;
-use HexMakina\LeMarchand\Factory;
-use HexMakina\LeMarchand\NotFoundException;
-
-
+use HexMakina\LeMarchand\LeMarchand;
 
 class SolverTest extends TestCase
 {
     private $container;
-    private $solver;
 
     protected function setUp(): void
     {
-        $this->solver = new Solver($this->container);
+        $this->container = new LeMarchand([]);
+    }
+    
+    public function testEmptyConstructor()
+    {
+        $res = new Solver($this->container);
+        $this->assertInstanceOf(Solver::class, $res);
     }
 
 }
