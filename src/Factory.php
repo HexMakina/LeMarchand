@@ -4,10 +4,9 @@ namespace HexMakina\LeMarchand;
 
 use Psr\Container\ContainerInterface;
 
-// Class Factory
 class Factory 
 {
-    // Private static member to store cached instances
+    // store cached instances
     private static $instance_cache = [];
 
     // Private container used for dependency injection
