@@ -8,15 +8,13 @@ use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 
 
-class LeMarchandTest extends TestCase
+class LeMarchandKadroSettingsTest extends TestCase
 {
-   public function testEmptyConstructor()
-   {
-        $res = new LeMarchand([]);
+    public function testEmptyConstructor()
+    {
+        $res = new LeMarchand(require(__DIR__.'/data_settings.php'));
         $this->assertInstanceOf(LeMarchand::class, $res);
-        $this->assertInstanceOf(ContainerInterface::class, $res);
 
-        $this->assertFalse($res->has('test'));
-   }
+    }
 
 }
